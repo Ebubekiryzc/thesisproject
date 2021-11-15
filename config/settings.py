@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL='account.User'
+
 
 # Application definition
 
@@ -40,7 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'apps.accounts'
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'apps.account',
+    'apps.product'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -130,10 +135,24 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR,'static')
+    os.path.join(BASE_DIR, 'static')
 ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CRISPY FORM SETTINGS:
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+# EMAIL CONFIG
+
+EMAIL_FROM_USER= 'firsat.cantam@gmail.com'
+EMAIL_HOST= 'smtp.gmail.com' 
+EMAIL_HOST_USER = 'firsat.cantam@gmail.com'
+EMAIL_HOST_PASSWORD = 'Aa12345.' 
+EMAIL_USE_TLS = True 
+EMAIL_PORT = 587 

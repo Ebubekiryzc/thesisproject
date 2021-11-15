@@ -1,0 +1,33 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'index'%}">Proje Adı</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'about'%}">Hakkında</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                {% if request.user.is_authenticated %}
+                <li class="nav-item active">
+                    <a href="/articles/dashboard" class="nav-link">Kontrol Paneli</a>
+                </li>
+                <li class="nav-item active">
+                    <a href="{% url 'apps.account:logout' %}" class="nav-link">Çıkış Yap</a>
+                </li>
+                {% else %}
+                <li class="nav-item active">
+                    <a href="{% url 'apps.account:login' %}" class="nav-link">Giriş Yap</a>
+                </li>
+                <li class="nav-item active">
+                    <a href="{% url 'apps.account:register' %}" class="nav-link">Kayıt Ol</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

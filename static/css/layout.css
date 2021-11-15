@@ -1,0 +1,11 @@
+:root{
+    --light: #f0f0f0;
+    --dark: #333333;
+    --primary-color: orange;
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
