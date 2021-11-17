@@ -14,7 +14,7 @@
             <ul class="navbar-nav ms-auto">
                 {% if request.user.is_authenticated %}
                 <li class="nav-item active">
-                    <a href="/articles/dashboard" class="nav-link">Kontrol Paneli</a>
+                    <a href="{% url 'apps.product:dashboard' %}" class="nav-link">Kontrol Paneli</a>
                 </li>
                 <li class="nav-item active">
                     <a href="{% url 'apps.account:logout' %}" class="nav-link">Çıkış Yap</a>

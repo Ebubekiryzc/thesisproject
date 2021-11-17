@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 from .forms import LoginForm, RegisterForm
 from .models import User
@@ -15,37 +16,33 @@ from django.conf import settings
 # Create your views here.
 
 
-def send_activation_email(request, user):
-    current_site = get_current_site(request)
-    context = {
-        'user': user,
-        'domain': current_site,
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'token': generate_token.make_token(user)
-    }
-    email_subject = 'Hesabınızı aktifleştirin.'
-    email_body = render_to_string('account/activate.html', context)
-    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
-                         to=[user.email])
-    email.send()
-
-
 @auth_user_should_not_access
 def register(request):
 
     form = RegisterForm(request.POST or None)
+    context = {
+        'form': form
+    }
     if form.is_valid():
         email = form.cleaned_data.get('email')
         username = form.cleaned_data.get('username')
         password = form.cleaned_data.get('password')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Kullanıcı adı alınmış!')
+            return render(request, 'account/register.html', context)
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email adresi alınmış!')
+            return render(request, 'account/register.html', context)
 
         newUser = User(username=username, email=email)
         newUser.set_password(password)
         newUser.save()
 
         send_activation_email(request, newUser)
-        messages.success(request, 'Email ')
-        return redirect('apps.account:login')
+        messages.info(request, 'Aktivasyon maili hesabınıza yollandı.')
+        return redirect('apps.account:register')
     context = {
         'form': form
     }
@@ -64,8 +61,13 @@ def login(request):
         password = form.cleaned_data.get('password')
 
         user = auth.authenticate(username=username, password=password)
+
         if user is None:
             messages.error(request, 'Kullanıcı adı veya parola bulunamadı.')
+            return render(request, 'account/login.html', context)
+
+        if not user.is_email_verified:
+            messages.error(request, 'Email adresiniz onaylanmamış.')
             return render(request, 'account/login.html', context)
 
         messages.success(request, 'Başarıyla giriş yapıldı.')
@@ -75,6 +77,7 @@ def login(request):
     return render(request, 'account/login.html', context)
 
 
+@login_required(login_url='apps.account:login')
 def logout(request):
     auth.logout(request)
     messages.success(request, 'Başarıyla çıkış yapıldı.')
@@ -99,3 +102,18 @@ def activate_user(request, uidb64, token):
         "user": user
     }
     return render(request, 'account/activate-failed.html', context)
+
+
+def send_activation_email(request, user):
+    current_site = get_current_site(request)
+    context = {
+        'user': user,
+        'domain': current_site,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': generate_token.make_token(user)
+    }
+    email_subject = 'Hesabınızı Aktifleştirin'
+    email_body = render_to_string('account/activate.html', context)
+    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
+                         to=[user.email])
+    email.send()
