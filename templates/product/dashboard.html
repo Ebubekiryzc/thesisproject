@@ -21,6 +21,8 @@
             <td><a href="{{product.product_link}}">{{product.product_link|urlizetrunc:40}}</a></td>
             <td><a class="btn btn-warning text-light" href="{% url 'apps.product:update_product' id=product.id %}">Güncelle</a></td>
             <td><a class="btn btn-danger text-light" href="{% url 'apps.product:delete_product' id=product.id %}">Sil</a></td>
+            <td><a class="btn btn-danger text-light" href="{% url 'apps.product:send_product_link_to_user' id=product.id %}">Gönder</a></td>
+
         </tr>
         {% endfor %}
     </tbody>
