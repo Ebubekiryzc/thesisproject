@@ -19,8 +19,8 @@
         {% for product in products %}
         <tr>
             <td><a href="{{product.product_link}}">{{product.product_link|urlizetrunc:40}}</a></td>
-            <td><a class="btn btn-warning text-light" href="{% url 'apps.product:update_product' %}">Güncelle</a></td>
-            <td><a class="btn btn-danger text-light" href="{% url 'apps.product:delete_product' %}">Sil</a></td>
+            <td><a class="btn btn-warning text-light" href="{% url 'apps.product:update_product' id=product.id %}">Güncelle</a></td>
+            <td><a class="btn btn-danger text-light" href="{% url 'apps.product:delete_product' id=product.id %}">Sil</a></td>
         </tr>
         {% endfor %}
     </tbody>
