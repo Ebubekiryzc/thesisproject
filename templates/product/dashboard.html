@@ -19,6 +19,7 @@
         {% for product in products %}
         <tr>
             <td><a href="{{product.product_link}}">{{product.product_link|urlizetrunc:40}}</a></td>
+<<<<<<< HEAD
             <td><a class="btn btn-warning text-light"
                     href="{% url 'apps.product:update_product' id=product.id %}">Güncelle</a></td>
             <td><button type="button" class="btn btn-danger text-light" data-bs-toggle="modal"
@@ -46,6 +47,10 @@
                     </div>
                 </div>
             </td>
+=======
+            <td><a class="btn btn-warning text-light" href="{% url 'apps.product:update_product' id=product.id %}">Güncelle</a></td>
+            <td><a class="btn btn-danger text-light" href="{% url 'apps.product:delete_product' id=product.id %}">Sil</a></td>
+>>>>>>> d86e125d6c10abc8f6fa9c4cd7238eb113743aed
         </tr>
         {% endfor %}
     </tbody>
