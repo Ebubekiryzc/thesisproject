@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from apps.account.models import User
 from apps.account.views import login
 from .models import Product
@@ -35,8 +35,8 @@ def dashboard(request):
 @login_required(login_url='apps.account:login')
 def add_product(request):
     form = ProductForm(request.POST or None)
-    context ={
-        'form':form
+    context = {
+        'form': form
     }
     if form.is_valid():
         product = form.save()
@@ -49,10 +49,28 @@ def add_product(request):
         return redirect('apps.product:dashboard')
     return render(request, 'product/add-product.html', context)
 
-@login_required(login_url='apps.account:login')
-def update_product(request, idb64):
-    pass
 
 @login_required(login_url='apps.account:login')
-def delete_product(request, idb64):
-    pass
+def update_product(request, id):
+    product = get_object_or_404(Product, id=id)
+    form = ProductForm(request.POST or None, instance=product)
+    context = {
+        'form': form
+    }
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Ürün başarıyla güncellendi.')
+        return redirect('apps.product:dashboard')
+    return render(request, 'product/update-product.html', context)
+
+
+@login_required(login_url='apps.account:login')
+def delete_product(request, id):
+    product = get_object_or_404(Product, id=id)
+
+    user = User.objects.filter(id=request.user.id).first()
+    user.wishlisted_products['product_id'].remove(product.id)
+    user.save()
+
+    messages.success(request, 'Ürün başarıyla silindi.')
+    return redirect('apps.product:dashboard')
