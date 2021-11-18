@@ -4,13 +4,13 @@
 <hr>
 <p>Hoşgeldiniz, <b>{{request.user.username}}</b></p>
 <hr>
-<a href="{% url 'apps.product:add' %}" class="btn btn-danger text-light">Takip Edilecek Ürün Linki Ekle</a>
+<a href="{% url 'apps.product:add_product' %}" class="btn btn-primary text-light">Takip Edilecek Ürün Linki Ekle</a>
 <hr>
 {% if products %}
 <table class="table">
     <thead>
         <tr>
-            <th scope="col">Link</th>
+            <th scope="col">Ürün Linki</th>
             <th scope="col">Güncelle</th>
             <th scope="col">Sil</th>
         </tr>
@@ -18,9 +18,9 @@
     <tbody>
         {% for product in products %}
         <tr>
-            <td><a href="{{product.product_link}}">{{product.product_link}}</a></td>
-            <td><a class="btn btn-warning text-light" href="{% url 'apps.product:update' %}">Güncelle</a></td>
-            <td><a class="btn btn-danger text-light" href="{% url 'apps.product:delete' %}">Sil</a></td>
+            <td><a href="{{product.product_link}}">{{product.product_link|urlizetrunc:40}}</a></td>
+            <td><a class="btn btn-warning text-light" href="{% url 'apps.product:update_product' %}">Güncelle</a></td>
+            <td><a class="btn btn-danger text-light" href="{% url 'apps.product:delete_product' %}">Sil</a></td>
         </tr>
         {% endfor %}
     </tbody>

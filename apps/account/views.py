@@ -1,18 +1,19 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-
 from .forms import LoginForm, RegisterForm
 from .models import User
 from .utils import generate_token
-from helpers.decorators import auth_user_should_not_access
-from django.template.loader import render_to_string
+
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import auth
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_text, force_str, DjangoUnicodeDecodeError
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
-from django.conf import settings
+from django.utils.encoding import force_bytes, force_text, force_str, DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.template.loader import render_to_string
+from django.shortcuts import render, redirect
+
+from helpers.decorators import auth_user_should_not_access
 # Create your views here.
 
 
@@ -43,6 +44,7 @@ def register(request):
         send_activation_email(request, newUser)
         messages.info(request, 'Aktivasyon maili hesabınıza yollandı.')
         return redirect('apps.account:register')
+    
     context = {
         'form': form
     }
@@ -73,7 +75,7 @@ def login(request):
         messages.success(request, 'Başarıyla giriş yapıldı.')
         auth.login(request, user)
         return redirect('index')
-
+    
     return render(request, 'account/login.html', context)
 
 
@@ -82,6 +84,21 @@ def logout(request):
     auth.logout(request)
     messages.success(request, 'Başarıyla çıkış yapıldı.')
     return redirect('index')
+
+
+def send_activation_email(request, user):
+    current_site = get_current_site(request)
+    context = {
+        'user': user,
+        'domain': current_site,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': generate_token.make_token(user)
+    }
+    email_subject = 'Hesabınızı Aktifleştirin'
+    email_body = render_to_string('account/activate.html', context)
+    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
+                         to=[user.email])
+    email.send()
 
 
 def activate_user(request, uidb64, token):
@@ -98,22 +115,8 @@ def activate_user(request, uidb64, token):
         messages.success(
             request, 'Email onaylama işlemi başarı ile gerçekleşti.')
         return redirect('apps.account:login')
+
     context = {
         "user": user
     }
     return render(request, 'account/activate-failed.html', context)
-
-
-def send_activation_email(request, user):
-    current_site = get_current_site(request)
-    context = {
-        'user': user,
-        'domain': current_site,
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'token': generate_token.make_token(user)
-    }
-    email_subject = 'Hesabınızı Aktifleştirin'
-    email_body = render_to_string('account/activate.html', context)
-    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
-                         to=[user.email])
-    email.send()

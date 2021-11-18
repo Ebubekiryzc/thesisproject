@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'apps.account',
-    'apps.product'
+    'apps.product',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
