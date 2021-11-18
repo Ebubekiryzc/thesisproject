@@ -23,5 +23,5 @@ urlpatterns = [
     path('account/', include('apps.account.urls')),
     path('product/', include('apps.product.urls')),
     path('',p_views.index, name = 'index'),
-    path('about', p_views.about, name ='about')
+    path('about/', p_views.about, name ='about')
 ]
