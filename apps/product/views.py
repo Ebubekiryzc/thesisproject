@@ -51,4 +51,4 @@ def add_product(request):
 
 @login_required(login_url='apps.account:login')
 def update_product(request, idb64):
-    
+    pass
