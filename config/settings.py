@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'apps.account',
     'apps.product',
+    
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
