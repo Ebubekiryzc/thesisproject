@@ -1,8 +1,12 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.mail.message import EmailMessage
 from django.shortcuts import get_object_or_404, render, redirect
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_text
 from apps.account.models import User
-from apps.account.views import login
 from .models import Product
 from .forms import ProductForm
 
@@ -26,6 +30,9 @@ def dashboard(request):
         id__in=currentUser.wishlisted_products['product_id'])
     products = list(products)
 
+    for product in products:
+        product.id = urlsafe_base64_encode(force_bytes(product.id))
+
     context = {
         'products': products
     }
@@ -38,6 +45,7 @@ def add_product(request):
     context = {
         'form': form
     }
+    
     if form.is_valid():
         product = form.save()
 
@@ -51,12 +59,15 @@ def add_product(request):
 
 
 @login_required(login_url='apps.account:login')
-def update_product(request, id):
-    product = get_object_or_404(Product, id=id)
+def update_product(request, idb64):
+    idb64 = force_text(urlsafe_base64_decode(idb64))
+    
+    product = get_object_or_404(Product, id=idb64)
     form = ProductForm(request.POST or None, instance=product)
     context = {
         'form': form
     }
+    
     if form.is_valid():
         form.save()
         messages.success(request, 'Ürün başarıyla güncellendi.')
@@ -65,12 +76,33 @@ def update_product(request, id):
 
 
 @login_required(login_url='apps.account:login')
-def delete_product(request, id):
-    product = get_object_or_404(Product, id=id)
+def delete_product(request, idb64):
+    idb64 = force_text(urlsafe_base64_decode(idb64))
+    
+    product = get_object_or_404(Product, id=idb64)
 
     user = User.objects.filter(id=request.user.id).first()
     user.wishlisted_products['product_id'].remove(product.id)
     user.save()
 
     messages.success(request, 'Ürün başarıyla silindi.')
+    return redirect('apps.product:dashboard')
+
+
+@login_required(login_url='apps.account:login')
+def send_product_link_to_user(request, idb64):
+    idb64 = force_text(urlsafe_base64_decode(idb64))
+    
+    product = get_object_or_404(Product, id=idb64)
+    context = {
+        'product': product,
+    }
+
+    email_subject = 'Kaydettiğiniz Link'
+    email_body = render_to_string('product/product-details.html', context)
+    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
+                         to=[request.user.email])
+    email.send()
+
+    messages.success(request, 'Mesaj başarıyla yollandı.')
     return redirect('apps.product:dashboard')
