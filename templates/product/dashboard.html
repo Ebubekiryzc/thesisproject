@@ -25,14 +25,14 @@
                     href="{% url 'apps.product:update_product' idb64=product.id %}">Güncelle</a></td>
             <td><button type="button" class="btn btn-danger text-light" data-bs-toggle="modal"
                     data-bs-target="#modal-{{product.id}}">
-                    Sil {{product.id}}
+                    Sil
                 </button>
                 <div class="modal fade" id="modal-{{product.id}}" data-bs-backdrop="static" data-bs-keyboard="false"
                     tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="staticBackdropLabel">{{product.product_link|urlizetrunc:40}} {{product.id}} </h5>
+                                <!-- <h5 class="modal-title" id="staticBackdropLabel">{{product.product_link|urlizetrunc:40}} {{product.id}} </h5> -->
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
                             </div>
