@@ -10,8 +10,34 @@ from apps.account.models import User
 from .models import Product
 from .forms import ProductForm
 
+import requests
+import random
 
 # Create your views here.
+
+postcodes = [
+    "SW1A 1AA",
+    "PE35 6EB",
+    "CV34 6AH",
+    "EH1 2NG"
+]
+
+
+def schedule_api():
+
+    postcode = postcodes[random.randint(0, 3)]
+
+    full_url = f"https://api.postcodes.io/postcodes/{postcode}"
+
+    r = requests.get(full_url)
+    if r.status_code == 200:
+
+        result = r.json()["result"]
+
+        lat = result["latitude"]
+        lng = result["longitude"]
+
+        print(f'Latitude: {lat}, Longitude: {lng}')
 
 
 def index(request):
@@ -45,7 +71,7 @@ def add_product(request):
     context = {
         'form': form
     }
-    
+
     if form.is_valid():
         product = form.save()
 
@@ -61,13 +87,13 @@ def add_product(request):
 @login_required(login_url='apps.account:login')
 def update_product(request, idb64):
     idb64 = force_text(urlsafe_base64_decode(idb64))
-    
+
     product = get_object_or_404(Product, id=idb64)
     form = ProductForm(request.POST or None, instance=product)
     context = {
         'form': form
     }
-    
+
     if form.is_valid():
         form.save()
         messages.success(request, 'Ürün başarıyla güncellendi.')
@@ -78,7 +104,7 @@ def update_product(request, idb64):
 @login_required(login_url='apps.account:login')
 def delete_product(request, idb64):
     idb64 = force_text(urlsafe_base64_decode(idb64))
-    
+
     product = get_object_or_404(Product, id=idb64)
 
     user = User.objects.filter(id=request.user.id).first()
@@ -92,7 +118,7 @@ def delete_product(request, idb64):
 @login_required(login_url='apps.account:login')
 def send_product_link_to_user(request, idb64):
     idb64 = force_text(urlsafe_base64_decode(idb64))
-    
+
     product = get_object_or_404(Product, id=idb64)
     context = {
         'product': product,
