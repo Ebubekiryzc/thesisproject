@@ -153,6 +153,6 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 EMAIL_FROM_USER= 'firsat.cantam@gmail.com'
 EMAIL_HOST= 'smtp.gmail.com' 
 EMAIL_HOST_USER = 'firsat.cantam@gmail.com'
-EMAIL_HOST_PASSWORD = '' 
+EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = True 
 EMAIL_PORT = 587 

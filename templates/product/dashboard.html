@@ -1,60 +1,115 @@
-{% extends 'layout.html' %}
-{% block body %}
+{% extends 'layout.html' %} {% block body %}
 <h3>Kontrol Paneli</h3>
-<hr>
+<hr />
 <p>Hoşgeldiniz, <b>{{request.user.username}}</b></p>
-<hr>
-<a href="{% url 'apps.product:add_product' %}" class="btn btn-primary text-light">Takip Edilecek Ürün Linki Ekle</a>
-<hr>
-{% if products %}
+<hr />
+<a
+  href="{% url 'apps.product:add_product' %}"
+  class="btn btn-primary text-light"
+  >Takip Edilecek Ürün Linki Ekle</a
+>
+<hr />
+{% if content %}
 <table class="table">
-    <thead>
-        <tr>
-            <th scope="col">Ürün Linki</th>
-            <th scope="col">Mail Gönder</th>
-            <th scope="col">Güncelle</th>
-            <th scope="col">Sil</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for product in products %}
-        <tr>
-            <td><a href="{{product.product_link}}">{{product.product_link|urlizetrunc:40}}</a></td>
-            <td><a href="{% url 'apps.product:send_product_link_to_user' idb64=product.id %}" class="btn btn-primary text-light">Gönder</a></td>
-            <td><a class="btn btn-warning text-light"
-                    href="{% url 'apps.product:update_product' idb64=product.id %}">Güncelle</a></td>
-            <td><button type="button" class="btn btn-danger text-light" data-bs-toggle="modal"
-                    data-bs-target="#modal-{{product.id}}">
-                    Sil
+  <thead>
+    <tr>
+      <th scope="col">Ürün İsmi/Ürün Linki</th>
+      <th scope="col">Ürün Fiyatı</th>
+      <th scope="col">Mail Gönder</th>
+      <th scope="col">Güncelle</th>
+      <th scope="col">Sil</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for product, favicon in content %}
+    <tr>
+      {% if product.product_description != "" %}
+      <td>
+        <img width="16" src="{{favicon}}" alt="Bulunamadı"></img>
+        <a href="{{product.product_link}}">{{product.product_description}}</a>
+      </td>
+      {% else %}
+      <td>
+        <img width="16" src="{{favicon}}" alt="Bulunamadı"></img>
+        <a href="{{product.product_link}}"
+          >{{product.product_link|urlizetrunc:40}}</a
+        >
+      </td>
+      {% endif %} {% if product.product_price != 0%}
+      <td><span class="product-price">{{product.product_price}}</span></td>
+      {% else %}
+      <td><span class="product-price">Ürün fiyatı kazınamamıştır.</span></td>
+      {% endif %}
+
+      <td>
+        <a
+          href="{% url 'apps.product:send_product_link_to_user' idb64=product.id %}"
+          class="btn btn-primary text-light"
+          >Gönder</a
+        >
+      </td>
+      <td>
+        <a
+          class="btn btn-warning text-light"
+          href="{% url 'apps.product:update_product' idb64=product.id %}"
+          >Güncelle</a
+        >
+      </td>
+      <td>
+        <button
+          type="button"
+          class="btn btn-danger text-light"
+          data-bs-toggle="modal"
+          data-bs-target="#modal-{{product.id}}"
+        >
+          Sil
+        </button>
+        <div
+          class="modal fade"
+          id="modal-{{product.id}}"
+          data-bs-backdrop="static"
+          data-bs-keyboard="false"
+          tabindex="-1"
+          aria-labelledby="staticBackdropLabel"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <!-- <h5 class="modal-title" id="staticBackdropLabel">{{product.product_link|urlizetrunc:40}} {{product.id}} </h5> -->
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div class="modal-body">
+                Belirtilen ürünü gerçekten silmek istiyor musunuz?
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  İptal
                 </button>
-                <div class="modal fade" id="modal-{{product.id}}" data-bs-backdrop="static" data-bs-keyboard="false"
-                    tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <!-- <h5 class="modal-title" id="staticBackdropLabel">{{product.product_link|urlizetrunc:40}} {{product.id}} </h5> -->
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                Belirtilen ürünü gerçekten silmek istiyor musunuz?
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                                <a type="button" class="btn btn-danger"
-                                    href="{% url 'apps.product:delete_product' idb64=product.id %}">Sil</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
+                <a
+                  type="button"
+                  class="btn btn-danger"
+                  href="{% url 'apps.product:delete_product' idb64=product.id %}"
+                  >Sil</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
 {% else %}
-<div class="alert alert-danger">
-    Henüz bir ürün takip etmiyorsunuz.
-</div>
-{% endif %}
-{% endblock body %}
+<div class="alert alert-danger">Henüz bir ürün takip etmiyorsunuz.</div>
+{% endif %} {% endblock body %}
