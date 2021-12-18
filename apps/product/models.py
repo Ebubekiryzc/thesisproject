@@ -1,10 +1,12 @@
 from django.db import models
 from helpers.models import TrackingModel
+from apps.account.models import User
 
 # Create your models here.
 
 
 class Product(TrackingModel):
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
     product_link = models.CharField(
         max_length=2048, verbose_name='Ürünün Linki')
     product_description = models.CharField(

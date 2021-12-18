@@ -60,20 +60,27 @@ def dashboard(request):
         id__in=currentUser.wishlisted_products['product_id'])
     products = list(products)
 
-    favicons = []
+    itemExist = True
+    if len(products) == 0:
+        itemExist = False
+
+    favicons = list()
 
     for product in products:
         product.id = urlsafe_base64_encode(force_bytes(product.id))
         favicons.append(get_favicon(product.product_link))
 
     content = zip(products, favicons)
+
     context = {
-        "content": content
+        "content": content,
+        "itemExist": itemExist
     }
 
     return render(request, 'product/dashboard.html', context)
 
 
+# TODO: Bir ürün bir kullanıcıya birden fazla kez tanımlanabiliyor.
 @login_required(login_url='apps.account:login')
 def add_product(request):
     form = ProductForm(request.POST or None)
@@ -83,7 +90,7 @@ def add_product(request):
 
     if form.is_valid():
         product_link = form.cleaned_data.get("product_link")
-        desription = ""
+        description = ""
         price = 0
 
         if (urlparse(product_link).netloc == "www.trendyol.com"):
@@ -98,6 +105,7 @@ def add_product(request):
 
         product = form.save()
         product = get_object_or_404(Product, id=product.id)
+        product.user = request.user
         product.product_link = product_link
         product.product_description = description
         product.product_price = price
@@ -138,6 +146,7 @@ def delete_product(request, idb64):
     user = User.objects.filter(id=request.user.id).first()
     user.wishlisted_products['product_id'].remove(product.id)
     user.save()
+    product.delete()
 
     messages.success(request, 'Ürün başarıyla silindi.')
     return redirect('apps.product:dashboard')
@@ -193,8 +202,8 @@ def get_html_content_from_hepsiburada(product_link):
     result = dict()
     result['description'] = soup.find(
         "span", attrs={"class": "product-name"}).get_text()
-    result['price'] = [price.text.strip()
-                       for price in soup.find_all('span', attrs={"id": "offering-price"})]
+    result['price'] = [price.text.replace('\n', ' ').strip()
+                       for price in soup.find_all('span', attrs={"id": "offering-price"})][0]
     return result
 
 
@@ -209,3 +218,42 @@ def get_favicon(page_link):
     else:
         favicon = f'{page_link.rstrip("/")}/favicon.ico'
     return favicon
+
+
+def compare_price_with_old_price(company):
+    products = Product.objects.all()
+    products = list(products)
+    discounted_products = list()
+    for product in products:
+        product.id = urlsafe_base64_encode(force_bytes(product.id))
+        if urlparse(product.product_link).netloc.split('.')[1] == company.__name__.split('_')[-1]:
+            result = company(product.product_link)
+            if float(result['price'].replace(',','.').split(' ')[0][:-3].replace(',','')) < float(product.product_price.replace(',','.').split(' ')[0][:-3].replace(',','')):
+                update_scraped_price(product.id, result['price'])
+                discounted_products.append(product)
+    if(len(discounted_products)!=0):
+        send_discount_message(discounted_products)
+
+
+def update_scraped_price(idb64, price):
+    idb64 = force_text(urlsafe_base64_decode(idb64))
+    product = get_object_or_404(Product, id=idb64)
+    product.product_price = price
+    product.save()
+
+
+def send_discount_message(products):
+    for product in products:
+        idb64 = force_text(urlsafe_base64_decode(product.id))
+        product = get_object_or_404(Product, id=idb64)
+        context = {
+            'product': product,
+        }
+
+        user = get_object_or_404(User,id=product.user_id)
+
+        email_subject = 'Ürün İndirimde!'
+        email_body = render_to_string('product/product-details.html', context)
+        email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
+                                 to=[user.email])
+        email.send()
