@@ -15,6 +15,8 @@
     <tr>
       <th scope="col">Ürün İsmi/Ürün Linki</th>
       <th scope="col">Ürün Fiyatı</th>
+      <th scope="col">Eklenme Tarihi</th>
+      <th scope="col">Güncellenme Tarihi</th>
       <th scope="col">Mail Gönder</th>
       <th scope="col">Güncelle</th>
       <th scope="col">Sil</th>
@@ -40,6 +42,20 @@
       {% else %}
       <td><span class="product-price">Ürün fiyatı kazınamamıştır.</span></td>
       {% endif %}
+      
+      <td>
+        <a
+          class="text-muted"
+          >{{product.created_at}}</a
+        >
+      </td>
+      
+      <td>
+        <a
+          class="text-muted"
+          >{{product.updated_at}}</a
+        >
+      </td>
 
       <td>
         <a

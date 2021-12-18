@@ -1,9 +1,10 @@
 from django.db import models
+from helpers.models import TrackingModel
 
 # Create your models here.
 
 
-class Product(models.Model):
+class Product(TrackingModel):
     product_link = models.CharField(
         max_length=2048, verbose_name='Ürünün Linki')
     product_description = models.CharField(
@@ -14,3 +15,4 @@ class Product(models.Model):
 
     def __str__(self):
         return self.product_link
+
