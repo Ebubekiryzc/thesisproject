@@ -8,4 +8,4 @@ class ProductConfig(AppConfig):
     def ready(self):
         print('Zamanlayıcı başladı...')
         from helpers import scheduler
-        scheduler.start(10)
+        scheduler.start(60)

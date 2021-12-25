@@ -1,9 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail.message import EmailMessage
-from django.core.validators import URLValidator
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -88,26 +86,31 @@ def add_product(request):
         'form': form
     }
 
+# TODO: Herkes kendi clientında url kontrolü yapsın. Client-side da yapmalıyız.
     if form.is_valid():
         product_link = form.cleaned_data.get("product_link")
         description = ""
+        image_source = ""
         price = 0
 
         if (urlparse(product_link).netloc == "www.trendyol.com"):
             scraped_data = get_html_content_from_trendyol(product_link)
             description = scraped_data["description"]
             price = scraped_data["price"]
+            image_source = scraped_data["image"]
 
         elif (urlparse(product_link).netloc == "www.hepsiburada.com"):
             scraped_data = get_html_content_from_hepsiburada(product_link)
             description = scraped_data["description"]
             price = scraped_data["price"]
+            image_source = scraped_data["image"]
 
         product = form.save()
         product = get_object_or_404(Product, id=product.id)
         product.user = request.user
         product.product_link = product_link
         product.product_description = description
+        product.product_picture_source = image_source
         product.product_price = price
         product.save()
 
@@ -173,12 +176,15 @@ def send_product_link_to_user(request, idb64):
 
 def scrape(product_link):
     import requests
+    import time
+    import random
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36 OPR/81.0.4196.61"
     LANGUAGE = "en-US,en;q=0.5"
     session = requests.Session()
     session.headers['User-Agent'] = USER_AGENT
     session.headers['Accept-Language'] = LANGUAGE
     session.headers['Content-Language'] = LANGUAGE
+    time.sleep(random.random()*3)
     html_content = session.get(f"{product_link}").text
     return html_content
 
@@ -192,6 +198,7 @@ def get_html_content_from_trendyol(product_link):
     result['description'] = soup.find(
         "h1", attrs={"class": "pr-new-br"}).get_text()
     result['price'] = soup.find("span", attrs={"class": "prc-slg"}).get_text()
+    result['image'] = soup.find("div", attrs={"class": "gallery-modal-content"}).find("img").get("src")
     return result
 
 
@@ -204,6 +211,7 @@ def get_html_content_from_hepsiburada(product_link):
         "span", attrs={"class": "product-name"}).get_text()
     result['price'] = [price.text.replace('\n', ' ').strip()
                        for price in soup.find_all('span', attrs={"id": "offering-price"})][0]
+    result['image'] = soup.find('img', attrs={"class": "product-image"}).get("src")
     return result
 
 
@@ -219,6 +227,8 @@ def get_favicon(page_link):
         favicon = f'{page_link.rstrip("/")}/favicon.ico'
     return favicon
 
+# TODO: Belli bir aralıkta işlem yapmasını sağlamalıyız. DOS saldırısı olmaması adına.
+
 
 def compare_price_with_old_price(company):
     products = Product.objects.all()
@@ -228,10 +238,10 @@ def compare_price_with_old_price(company):
         product.id = urlsafe_base64_encode(force_bytes(product.id))
         if urlparse(product.product_link).netloc.split('.')[1] == company.__name__.split('_')[-1]:
             result = company(product.product_link)
-            if float(result['price'].replace(',','.').split(' ')[0][:-3].replace(',','')) < float(product.product_price.replace(',','.').split(' ')[0][:-3].replace(',','')):
+            if float(result['price'].replace(',', '.').split(' ')[0][:-3].replace('.', '')) < float(product.product_price.replace(',', '.').split(' ')[0][:-3].replace('.', '')):
                 update_scraped_price(product.id, result['price'])
                 discounted_products.append(product)
-    if(len(discounted_products)!=0):
+    if(len(discounted_products) != 0):
         send_discount_message(discounted_products)
 
 
@@ -250,10 +260,10 @@ def send_discount_message(products):
             'product': product,
         }
 
-        user = get_object_or_404(User,id=product.user_id)
+        user = get_object_or_404(User, id=product.user_id)
 
         email_subject = 'Ürün İndirimde!'
         email_body = render_to_string('product/product-details.html', context)
         email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
-                                 to=[user.email])
+                             to=[user.email])
         email.send()
