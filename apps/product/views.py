@@ -2,8 +2,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail.message import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
 from urllib.parse import urlparse
@@ -184,7 +186,7 @@ def scrape(product_link):
     session.headers['User-Agent'] = USER_AGENT
     session.headers['Accept-Language'] = LANGUAGE
     session.headers['Content-Language'] = LANGUAGE
-    time.sleep(random.random()*3)
+    # time.sleep(random.random()*3)
     html_content = session.get(f"{product_link}").text
     return html_content
 
@@ -198,7 +200,8 @@ def get_html_content_from_trendyol(product_link):
     result['description'] = soup.find(
         "h1", attrs={"class": "pr-new-br"}).get_text()
     result['price'] = soup.find("span", attrs={"class": "prc-slg"}).get_text()
-    result['image'] = soup.find("div", attrs={"class": "gallery-modal-content"}).find("img").get("src")
+    result['image'] = soup.find(
+        "div", attrs={"class": "gallery-modal-content"}).find("img").get("src")
     return result
 
 
@@ -211,7 +214,8 @@ def get_html_content_from_hepsiburada(product_link):
         "span", attrs={"class": "product-name"}).get_text()
     result['price'] = [price.text.replace('\n', ' ').strip()
                        for price in soup.find_all('span', attrs={"id": "offering-price"})][0]
-    result['image'] = soup.find('img', attrs={"class": "product-image"}).get("src")
+    result['image'] = soup.find(
+        'img', attrs={"class": "product-image"}).get("src")
     return result
 
 
@@ -233,16 +237,23 @@ def get_favicon(page_link):
 def compare_price_with_old_price(company):
     products = Product.objects.all()
     products = list(products)
+    original_prices = list()
     discounted_products = list()
     for product in products:
         product.id = urlsafe_base64_encode(force_bytes(product.id))
         if urlparse(product.product_link).netloc.split('.')[1] == company.__name__.split('_')[-1]:
             result = company(product.product_link)
-            if float(result['price'].replace(',', '.').split(' ')[0][:-3].replace('.', '')) < float(product.product_price.replace(',', '.').split(' ')[0][:-3].replace('.', '')):
+            scraped_price = float(result['price'].replace(
+                ',', '.').split(' ')[0][:-3].replace('.', ''))
+            product_price = float(product.product_price.replace(
+                ',', '.').split(' ')[0][:-3].replace('.', '')) # 259,600.00 TL --> 259.600.00 TL --> 259.600.00
+            if (scraped_price) != (product_price):
                 update_scraped_price(product.id, result['price'])
-                discounted_products.append(product)
+                if (scraped_price) < (product_price):
+                    original_prices.append(product_price)
+                    discounted_products.append(product)
     if(len(discounted_products) != 0):
-        send_discount_message(discounted_products)
+        send_discount_message(original_prices, discounted_products)
 
 
 def update_scraped_price(idb64, price):
@@ -252,18 +263,26 @@ def update_scraped_price(idb64, price):
     product.save()
 
 
-def send_discount_message(products):
-    for product in products:
+def send_discount_message(original_prices, products):
+    for original_price, product in zip(original_prices, products):
         idb64 = force_text(urlsafe_base64_decode(product.id))
         product = get_object_or_404(Product, id=idb64)
         context = {
+            'site': 'http://127.0.0.1:8000',
+            'original_price': original_price,
             'product': product,
         }
 
-        user = get_object_or_404(User, id=product.user_id)
+        toUserEmail = get_object_or_404(User, id=product.user_id).email
 
-        email_subject = 'Ürün İndirimde!'
-        email_body = render_to_string('product/product-details.html', context)
-        email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
-                             to=[user.email])
+        company = urlparse(product.product_link).netloc.split('.')[1]
+
+        email_subject = f'{company} sitesinde takip ettiğiniz {product.product_description} ürünü indirimde!'
+        html_email_body = render_to_string(
+            'product/product-discount.html', context)
+        text_email_body = strip_tags(html_email_body)
+        # TODO: Dene: https://www.youtube.com/watch?v=GdqjyAMvTE0
+        email = EmailMultiAlternatives(
+            email_subject, text_email_body, settings.EMAIL_FROM_USER, [toUserEmail])
+        email.attach_alternative(html_email_body, "text/html")
         email.send()

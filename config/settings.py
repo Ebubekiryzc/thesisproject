@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_inlinecss',
     'corsheaders',
     'rest_framework',
     'crispy_forms',
@@ -137,6 +138,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -153,6 +155,6 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 EMAIL_FROM_USER= 'firsat.cantam@gmail.com'
 EMAIL_HOST= 'smtp.gmail.com' 
 EMAIL_HOST_USER = 'firsat.cantam@gmail.com'
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_PASSWORD = 'Proje123.'
 EMAIL_USE_TLS = True 
 EMAIL_PORT = 587 

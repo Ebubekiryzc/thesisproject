@@ -1,0 +1,20 @@
+@import "/css/bootstrap.min.css";
+
+body {
+    background: #eee
+}
+
+.card {
+    border: none;
+    width: 400px
+}
+
+.promo-text {
+    font-size: 13px
+}
+
+.btn-success,
+.btn-primary {
+    height: 42px;
+    font-size: 14px
+}
