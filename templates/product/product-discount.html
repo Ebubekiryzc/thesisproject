@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-{% load static %}
+{% load inlinecss %} {% inlinecss "css/product/product-discount.css" %}
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <style>
-      @import url("");
-    </style>
   </head>
   <body>
     <div class="container mt-5 mb-5 d-flex justify-content-center">
@@ -16,22 +13,26 @@
         <div><img src="{{product.product_picture_source}}" width="70" /></div>
         <h5 class="mt-3">{{product.product_description}} İndirimde!</h5>
         <br />
-        <h6 class="text-decoration-line-through text-secondary">
-          {{original_price}}
-        </h6>
-        <h4 class="ms-3 text-success fw-bolder">{{product.product_price}}</h4>
+        <del> {{product.product_original_price}} </del>
+        <br />
+        {% if last_discounted_price %}
+        <del> {{last_discounted_price}} </del>
+        <br />
+        {% endif %}
+        <h4 class="ms-3 text-success fw-bolder">
+          {{product.product_discounted_price}}
+        </h4>
         <span class="promo-text"
           >Aşağıdaki butona tıklayarak ürün sayfasına
           yönlendirilebilirsiniz</span
         >
         <div class="mt-3 px-4">
           <a href="{{product.product_link}}" target="_blank">
-            <button class="btn btn-success w-100 mt-2">
-              Sayfaya Git
-            </button>
+            <button class="btn btn-success w-100 mt-2">Sayfaya Git</button>
           </a>
         </div>
       </div>
     </div>
   </body>
 </html>
+{% endinlinecss %}

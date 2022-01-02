@@ -93,18 +93,21 @@ def add_product(request):
         product_link = form.cleaned_data.get("product_link")
         description = ""
         image_source = ""
-        price = 0
+        original_price = 0
+        discounted_price = 0
 
         if (urlparse(product_link).netloc == "www.trendyol.com"):
             scraped_data = get_html_content_from_trendyol(product_link)
             description = scraped_data["description"]
-            price = scraped_data["price"]
+            original_price = scraped_data["original-price"]
+            discounted_price = scraped_data["discounted-price"]
             image_source = scraped_data["image"]
 
         elif (urlparse(product_link).netloc == "www.hepsiburada.com"):
             scraped_data = get_html_content_from_hepsiburada(product_link)
             description = scraped_data["description"]
-            price = scraped_data["price"]
+            original_price = scraped_data["original-price"]
+            discounted_price = scraped_data["discounted-price"]
             image_source = scraped_data["image"]
 
         product = form.save()
@@ -113,7 +116,8 @@ def add_product(request):
         product.product_link = product_link
         product.product_description = description
         product.product_picture_source = image_source
-        product.product_price = price
+        product.product_original_price = original_price
+        product.product_discounted_price = discounted_price
         product.save()
 
         user = User.objects.filter(id=request.user.id).first()
@@ -196,12 +200,26 @@ def get_html_content_from_trendyol(product_link):
     html_content = scrape(product_link)
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(html_content, 'html.parser')
+
     result = dict()
     result['description'] = soup.find(
         "h1", attrs={"class": "pr-new-br"}).get_text()
-    result['price'] = soup.find("span", attrs={"class": "prc-slg"}).get_text()
+ 
+    result['original-price'] = soup.find("span", attrs={"class": "prc-org"}).get_text() # None
+    result['discounted-price'] = soup.find("span", attrs={"class": "prc-slg"}).get_text()
+
+    # Eğer orijinal fiyat yoksa, sitede indirimli fiyat alanına orijinal fiyat kaydı yapılmış dolayısıyla bu işlem gerçekleşmekte.
+    # Yani indirim olmadığında orijinal fiyat alanı olarak bu id' ye ait tag kullanılmış.
+    if(result['original-price'] is None):
+        result['original-price'] = result['discounted-price']
+
+    extra_discount = soup.find("span",attrs={"class": "prc-dsc"}).get_text() # None
+    if(extra_discount):
+        result['discounted-price'] = extra_discount    
+
     result['image'] = soup.find(
         "div", attrs={"class": "gallery-modal-content"}).find("img").get("src")
+
     return result
 
 
@@ -209,11 +227,14 @@ def get_html_content_from_hepsiburada(product_link):
     html_content = scrape(product_link)
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(html_content, 'html.parser')
+
     result = dict()
     result['description'] = soup.find(
         "span", attrs={"class": "product-name"}).get_text()
-    result['price'] = [price.text.replace('\n', ' ').strip()
-                       for price in soup.find_all('span', attrs={"id": "offering-price"})][0]
+
+    result['original-price'] = soup.find("del", attrs={"id": "originalPrice"}).get_text()
+    result['discounted-price'] = [price.text.replace('\n',' ').replace('\r','').replace('(Adet )','').strip() for price in soup.find_all('span', attrs={"id": "offering-price"})][0]
+
     result['image'] = soup.find(
         'img', attrs={"class": "product-image"}).get("src")
     return result
@@ -237,52 +258,58 @@ def get_favicon(page_link):
 def compare_price_with_old_price(company):
     products = Product.objects.all()
     products = list(products)
-    original_prices = list()
+    last_discounted_prices = list()
     discounted_products = list()
     for product in products:
         product.id = urlsafe_base64_encode(force_bytes(product.id))
         if urlparse(product.product_link).netloc.split('.')[1] == company.__name__.split('_')[-1]:
             result = company(product.product_link)
-            scraped_price = float(result['price'].replace(
-                ',', '.').split(' ')[0][:-3].replace('.', ''))
-            product_price = float(product.product_price.replace(
-                ',', '.').split(' ')[0][:-3].replace('.', '')) # 259,600.00 TL --> 259.600.00 TL --> 259.600.00
-            if (scraped_price) != (product_price):
-                update_scraped_price(product.id, result['price'])
-                if (scraped_price) < (product_price):
-                    original_prices.append(product_price)
+
+            scraped_original_price = float(result['original-price'].replace(',', '.').split(' ')[0][:-3].replace('.', ''))
+            scraped_discounted_price = float(result['discounted-price'].replace(',', '.').split(' ')[0][:-3].replace('.', ''))
+
+            last_original_price = float(product.product_original_price.replace(',', '.').split(' ')[0][:-3].replace('.', ''))
+            last_discounted_price = product.product_discounted_price
+            last_discounted_price_modified = float(last_discounted_price.replace(',', '.').split(' ')[0][:-3].replace('.', '')) # 259,600.00 TL --> 259.600.00 TL --> 259600.00
+
+            if ((scraped_discounted_price != last_discounted_price_modified) or (scraped_original_price != last_original_price)):
+                update_scraped_price(product.id, result['original-price'], result['discounted-price'])
+                if (scraped_discounted_price < last_discounted_price_modified):
+                    last_discounted_prices.append(last_discounted_price)
                     discounted_products.append(product)
+
     if(len(discounted_products) != 0):
-        send_discount_message(original_prices, discounted_products)
+        send_discount_message(last_discounted_prices, discounted_products)
 
-
-def update_scraped_price(idb64, price):
+def update_scraped_price(idb64, original_price, discounted_price):
     idb64 = force_text(urlsafe_base64_decode(idb64))
     product = get_object_or_404(Product, id=idb64)
-    product.product_price = price
+    product.product_original_price = original_price
+    product.product_discounted_price = discounted_price
     product.save()
 
 
-def send_discount_message(original_prices, products):
-    for original_price, product in zip(original_prices, products):
+def send_discount_message(last_discounted_prices, products):
+    for last_discounted_price, product in zip(last_discounted_prices, products):
         idb64 = force_text(urlsafe_base64_decode(product.id))
         product = get_object_or_404(Product, id=idb64)
+        
+        if(product.product_original_price == last_discounted_price):
+            last_discounted_price = None
+
         context = {
-            'site': 'http://127.0.0.1:8000',
-            'original_price': original_price,
+            'last_discounted_price': last_discounted_price,
             'product': product,
         }
 
-        toUserEmail = get_object_or_404(User, id=product.user_id).email
+        user = get_object_or_404(User, id=product.user_id)
 
         company = urlparse(product.product_link).netloc.split('.')[1]
 
         email_subject = f'{company} sitesinde takip ettiğiniz {product.product_description} ürünü indirimde!'
         html_email_body = render_to_string(
             'product/product-discount.html', context)
-        text_email_body = strip_tags(html_email_body)
-        # TODO: Dene: https://www.youtube.com/watch?v=GdqjyAMvTE0
-        email = EmailMultiAlternatives(
-            email_subject, text_email_body, settings.EMAIL_FROM_USER, [toUserEmail])
-        email.attach_alternative(html_email_body, "text/html")
+        email = EmailMessage(subject=email_subject, body=html_email_body, from_email=settings.EMAIL_FROM_USER,
+                         to=[user.email])
+        email.content_subtype = 'html'
         email.send()

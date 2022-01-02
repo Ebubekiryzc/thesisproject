@@ -10834,21 +10834,4 @@ textarea.form-control-lg {
   }
 }
 
-body {
-    background: #eee
-}
-
-.card {
-    border: none;
-    width: 400px
-}
-
-.promo-text {
-    font-size: 13px
-}
-
-.btn-success,
-.btn-primary {
-    height: 42px;
-    font-size: 14px
-}
+/*# sourceMappingURL=bootstrap.css.map */
