@@ -3,11 +3,16 @@
 <hr />
 <p>Hoşgeldiniz, <b>{{request.user.username}}</b></p>
 <hr />
+<div class="d-flex">
 <a
   href="{% url 'apps.product:add_product' %}"
   class="btn btn-primary text-light"
   >Takip Edilecek Ürün Linki Ekle</a
 >
+<a href="{% url 'apps.product:compare_price_with_old_price_sync' %}" class="btn btn-success text-light ms-auto">
+  Tümünü Güncelle
+</a>
+</div>
 <hr />
 {% if itemExist == True %}
 <table class="table">
@@ -16,9 +21,11 @@
       <th scope="col">Ürün Resmi</th>
       <th scope="col">Ürün İsmi/Ürün Linki</th>
       <th scope="col">Ürün Fiyatı</th>
+      <th scope="col">Ürünün Puanı</th>
       <th scope="col">Eklenme Tarihi</th>
       <th scope="col">Güncellenme Tarihi</th>
-      <th scope="col">Mail Gönder</th>
+      <th scope="col" class="d-none">Mail Gönder</th>
+      <th scope="col">Şimdi Sorgula</th>
       <th scope="col">Güncelle</th>
       <th scope="col">Sil</th>
     </tr>
@@ -46,17 +53,24 @@
       <td><span class="product-price">Ürün fiyatı kazınamamıştır.</span></td>
       {% endif %}
       <td>
+      </td>
+      <td>
         <a class="text-muted text-decoration-none">{{product.created_at}}</a>
       </td>
       <td>
         <a class="text-muted text-decoration-none">{{product.updated_at}}</a>
       </td>
-      <td>
+      <td class="d-none">
         <a
           href="{% url 'apps.product:send_product_link_to_user' idb64=product.id %}"
           class="btn btn-primary text-light"
           >Gönder</a
         >
+      </td>
+      <td>
+        <a href="{% url 'apps.product:compare_price_with_old_price_sync' idb64=product.id %}" class="btn btn-primary text-light">
+          Sorgula
+        </a>
       </td>
       <td>
         <a

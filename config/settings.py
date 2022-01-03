@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL='account.User'
+AUTH_USER_MODEL = 'account.User'
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_inlinecss',
     'corsheaders',
+    'fontawesomefree',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -152,9 +153,9 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 # EMAIL CONFIG
 
-EMAIL_FROM_USER= 'firsat.cantam@gmail.com'
-EMAIL_HOST= 'smtp.gmail.com' 
+EMAIL_FROM_USER = 'firsat.cantam@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'firsat.cantam@gmail.com'
 EMAIL_HOST_PASSWORD = ''
-EMAIL_USE_TLS = True 
-EMAIL_PORT = 587 
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
