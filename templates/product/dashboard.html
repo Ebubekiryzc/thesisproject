@@ -35,7 +35,7 @@
   </thead>
   <tbody>
     {% for product, favicon in content %}
-    <tr onloadeddata="getRatings('{{product.product_mean_rating}}');">
+    <tr>
       <td>
         <img width="50" height="50" src="{{product.product_picture_source}}" alt="Bulunamadı"></img>
       </td>
@@ -123,6 +123,12 @@
                 Belirtilen ürünü gerçekten silmek istiyor musunuz?
               </div>
               <div class="modal-footer">
+                <a
+                  type="button"
+                  class="btn btn-danger"
+                  href="{% url 'apps.product:delete_product' idb64=product.id %}"
+                  >Sil</a
+                >
                 <button
                   type="button"
                   class="btn btn-secondary"
@@ -130,12 +136,6 @@
                 >
                   İptal
                 </button>
-                <a
-                  type="button"
-                  class="btn btn-danger"
-                  href="{% url 'apps.product:delete_product' idb64=product.id %}"
-                  >Sil</a
-                >
               </div>
             </div>
           </div>
