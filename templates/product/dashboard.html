@@ -1,4 +1,5 @@
 {% extends 'layout.html' %} {% block body %}
+{% load custom_tags %}
 <h3>Kontrol Paneli</h3>
 <hr />
 <p>Hoşgeldiniz, <b>{{request.user.username}}</b></p>
@@ -34,7 +35,7 @@
   </thead>
   <tbody>
     {% for product, favicon in content %}
-    <tr>
+    <tr onloadeddata="getRatings('{{product.product_mean_rating}}');">
       <td>
         <img width="50" height="50" src="{{product.product_picture_source}}" alt="Bulunamadı"></img>
       </td>
@@ -55,10 +56,14 @@
       <td><span class="product-price">Ürün fiyatı kazınamamıştır.</span></td>
       {% endif %}
       <td>
+        {% if product.product_review_count != '0' %}
         <div class="stars-outer">
-          <div class="stars-inner" onload="getRatings('{{product.product_mean_rating}}')"></div>
+          <div class="stars-inner" style="width: {{product.product_mean_rating|getRatingPercentage}}"></div>
         </div>  
         <span>({{product.product_review_count}})</span>
+        {% else %}
+        <span>Henüz Yorum Yapılmamış.</span>
+        {% endif %}
       </td>
       <td>
         <a class="text-muted text-decoration-none">{{product.created_at}}</a>
@@ -143,14 +148,4 @@
 {% else %}
 <div class="alert alert-danger">Henüz bir ürün takip etmiyorsunuz.</div>
 {% endif %} 
-
-<script type="text/javascript">
-  function getRatings(product_mean_rating){
-    var rating = product_mean_rating;
-    console.log(rating);
-    var ratingPercentage = `${rating * 20}%`;
-    document.getElementsByClassName("stars-inner").style.width = ratingPercentage;
-  } 
-</script>
-
 {% endblock body %}

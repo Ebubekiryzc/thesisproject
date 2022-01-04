@@ -277,7 +277,7 @@ def get_html_content_from_trendyol(product_link):
         review_count = soup.select_one(".pr-in-rnr-nr span").get_text()
         print(review_count)
     else:
-        review_count = review_count.get_text().split(" ")[0]
+        review_count = "0"
 
     result['rating'] = rating
     result['review-count'] = review_count
@@ -312,8 +312,7 @@ def get_html_content_from_hepsiburada(product_link):
     if(review_count is not None):
         review_count = review_count.find("span").get_text()
     else:
-        review_count = soup.find(
-            "span", attrs={"class": "rating-information"}).get_text()
+        review_count = "0"
 
     result["rating"] = rating
     result["review-count"] = review_count
