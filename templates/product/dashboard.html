@@ -9,9 +9,11 @@
   class="btn btn-primary text-light"
   >Takip Edilecek Ürün Linki Ekle</a
 >
+{% if itemExist == True %}
 <a href="{% url 'apps.product:compare_price_with_old_price_sync' %}" class="btn btn-success text-light ms-auto">
   Tümünü Güncelle
 </a>
+{% endif %}
 </div>
 <hr />
 {% if itemExist == True %}
@@ -53,6 +55,10 @@
       <td><span class="product-price">Ürün fiyatı kazınamamıştır.</span></td>
       {% endif %}
       <td>
+        <div class="stars-outer">
+          <div class="stars-inner" onload="getRatings('{{product.product_mean_rating}}')"></div>
+        </div>  
+        <span>({{product.product_review_count}})</span>
       </td>
       <td>
         <a class="text-muted text-decoration-none">{{product.created_at}}</a>
@@ -136,4 +142,15 @@
 </table>
 {% else %}
 <div class="alert alert-danger">Henüz bir ürün takip etmiyorsunuz.</div>
-{% endif %} {% endblock body %}
+{% endif %} 
+
+<script type="text/javascript">
+  function getRatings(product_mean_rating){
+    var rating = product_mean_rating;
+    console.log(rating);
+    var ratingPercentage = `${rating * 20}%`;
+    document.getElementsByClassName("stars-inner").style.width = ratingPercentage;
+  } 
+</script>
+
+{% endblock body %}

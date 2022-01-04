@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -10,10 +11,14 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
 from urllib.parse import urlparse
 
+from selenium import webdriver
+
+
 from apps.account.models import User
 from .models import Product
 from .forms import ProductForm
 
+import json
 import requests
 import random
 
@@ -93,8 +98,10 @@ def add_product(request):
         product_link = form.cleaned_data.get("product_link")
         description = ""
         image_source = ""
-        original_price = 0
-        discounted_price = 0
+        original_price = "0"
+        discounted_price = "0"
+        mean_rating = "Değerlendirme kazınamadı."
+        review_count = "Yorum sayısı kazınamadı."
 
         if (urlparse(product_link).netloc == "www.trendyol.com"):
             scraped_data = get_html_content_from_trendyol(product_link)
@@ -102,6 +109,8 @@ def add_product(request):
             original_price = scraped_data["original-price"]
             discounted_price = scraped_data["discounted-price"]
             image_source = scraped_data["image"]
+            mean_rating = scraped_data["rating"]
+            review_count = scraped_data["review-count"]
 
         elif (urlparse(product_link).netloc == "www.hepsiburada.com"):
             scraped_data = get_html_content_from_hepsiburada(product_link)
@@ -109,6 +118,8 @@ def add_product(request):
             original_price = scraped_data["original-price"]
             discounted_price = scraped_data["discounted-price"]
             image_source = scraped_data["image"]
+            mean_rating = scraped_data["rating"]
+            review_count = scraped_data["review-count"]
 
         product = form.save()
         product = get_object_or_404(Product, id=product.id)
@@ -118,6 +129,8 @@ def add_product(request):
         product.product_picture_source = image_source
         product.product_original_price = original_price
         product.product_discounted_price = discounted_price
+        product.product_mean_rating = mean_rating
+        product.product_review_count = review_count
         product.save()
 
         user = User.objects.filter(id=request.user.id).first()
@@ -180,7 +193,7 @@ def send_product_link_to_user(request, idb64):
     return redirect('apps.product:dashboard')
 
 
-def compare_price_with_old_price_sync(request, idb64 = None):
+def compare_price_with_old_price_sync(request, idb64=None):
     last_discounted_prices = list()
     discounted_products = list()
     products = list(Product.objects.all())
@@ -190,8 +203,10 @@ def compare_price_with_old_price_sync(request, idb64 = None):
         product = get_object_or_404(Product, id=idb64)
         products = [product]
 
-    compare_price_with_old_price(get_html_content_from_hepsiburada, products, last_discounted_prices, discounted_products)
-    compare_price_with_old_price(get_html_content_from_trendyol, products, last_discounted_prices, discounted_products)
+    compare_price_with_old_price(
+        get_html_content_from_hepsiburada, products, last_discounted_prices, discounted_products)
+    compare_price_with_old_price(
+        get_html_content_from_trendyol, products, last_discounted_prices, discounted_products)
 
     if(len(discounted_products) != 0):
         send_discount_message(last_discounted_prices, discounted_products)
@@ -217,29 +232,55 @@ def get_html_content_from_trendyol(product_link):
     result = None
     html_content = scrape(product_link)
     from bs4 import BeautifulSoup
+
     soup = BeautifulSoup(html_content, 'html.parser')
 
     result = dict()
     result['description'] = soup.find(
         "h1", attrs={"class": "pr-new-br"}).get_text()
 
-    result['original-price'] = soup.find("span",
-                                         attrs={"class": "prc-org"}).get_text()  # None
+    original_price = soup.find("span",
+                               attrs={"class": "prc-org"})  # None
+    if(original_price is not None):
+        result['original-price'] = original_price.get_text()
+
     result['discounted-price'] = soup.find("span",
                                            attrs={"class": "prc-slg"}).get_text()
 
     # Eğer orijinal fiyat yoksa, sitede indirimli fiyat alanına orijinal fiyat kaydı yapılmış dolayısıyla bu işlem gerçekleşmekte.
     # Yani indirim olmadığında orijinal fiyat alanı olarak bu id' ye ait tag kullanılmış.
-    if(result['original-price'] is None):
+    if(original_price is None):
         result['original-price'] = result['discounted-price']
 
     extra_discount = soup.find(
-        "span", attrs={"class": "prc-dsc"}).get_text()  # None
+        "span", attrs={"class": "prc-dsc"})  # None
     if(extra_discount):
-        result['discounted-price'] = extra_discount
+        result['discounted-price'] = extra_discount.get_text()
 
     result['image'] = soup.find(
         "div", attrs={"class": "gallery-modal-content"}).find("img").get("src")
+
+    rating = "0"
+    scripts = soup.find_all('script', type='application/javascript')
+    for script in scripts:
+        if 'ratingScore' in script.text:
+            data = script.text.replace(
+                "window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=", "").split(";")[0]
+            data = json.loads(data)
+            rating = data["product"]["ratingScore"]["averageRating"]
+
+    if(rating is None):
+        rating = "0"
+
+    review_count = soup.find("a", attrs={"class": "rvw-cnt-tx"})  # None
+    if(review_count is None):
+        review_count = soup.select_one(".pr-in-rnr-nr span").get_text()
+        print(review_count)
+    else:
+        review_count = review_count.get_text().split(" ")[0]
+
+    result['rating'] = rating
+    result['review-count'] = review_count
 
     return result
 
@@ -250,7 +291,8 @@ def get_html_content_from_hepsiburada(product_link):
     soup = BeautifulSoup(html_content, 'html.parser')
 
     result = dict()
-    result['description'] = soup.find("span", attrs={"class": "product-name"}).get_text()
+    result['description'] = soup.find(
+        "span", attrs={"class": "product-name"}).get_text()
 
     result['original-price'] = soup.find("del",
                                          attrs={"id": "originalPrice"}).get_text()
@@ -259,6 +301,22 @@ def get_html_content_from_hepsiburada(product_link):
 
     result['image'] = soup.find(
         'img', attrs={"class": "product-image"}).get("src")
+
+    rating = soup.find("span", attrs={"class": "rating-star"})
+    if(rating is not None):
+        rating = rating.get_text().strip()
+    else:
+        rating = "0"
+
+    review_count = soup.find("a", attrs={"class": "product-comments"})
+    if(review_count is not None):
+        review_count = review_count.find("span").get_text()
+    else:
+        review_count = soup.find(
+            "span", attrs={"class": "rating-information"}).get_text()
+
+    result["rating"] = rating
+    result["review-count"] = review_count
     return result
 
 
@@ -293,7 +351,7 @@ def compare_price_with_old_price(company, products, last_discounted_prices, disc
     for product in products:
         if urlparse(product.product_link).netloc.split('.')[1] == company.__name__.split('_')[-1]:
             product.id = urlsafe_base64_encode(force_bytes(product.id))
-            
+
             result = company(product.product_link)
 
             scraped_original_price = float(

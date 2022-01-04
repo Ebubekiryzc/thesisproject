@@ -11,11 +11,16 @@ class Product(TrackingModel):
         max_length=2048, verbose_name='Ürünün Linki')
     product_description = models.CharField(
         max_length=2048, verbose_name="Ürün Adı")
-    product_original_price = models.CharField(max_length=20, verbose_name="Ürünün Orijinal Fiyatı")
-    product_discounted_price = models.CharField(max_length=20, verbose_name="Ürünün İndirimli Fiyatı")
+    product_original_price = models.CharField(
+        max_length=20, verbose_name="Ürünün Orijinal Fiyatı")
+    product_discounted_price = models.CharField(
+        max_length=20, verbose_name="Ürünün İndirimli Fiyatı")
     product_picture_source = models.CharField(
         max_length=2048, verbose_name="Ürün Resmi")
+    product_mean_rating = models.CharField(
+        max_length=5, verbose_name="Ürünün Değerlendirme Ortalaması")
+    product_review_count = models.CharField(
+        max_length=30, verbose_name="Ürünün Değerlendirme Sayısı")
 
     def __str__(self):
         return self.product_link
-
