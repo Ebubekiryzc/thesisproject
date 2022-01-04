@@ -223,8 +223,8 @@ def scrape(product_link):
     session.headers['User-Agent'] = USER_AGENT
     session.headers['Accept-Language'] = LANGUAGE
     session.headers['Content-Language'] = LANGUAGE
+    time.sleep(random.random()*3)
     html_content = session.get(f"{product_link}").text
-    # time.sleep(random.random()*3)
     return html_content
 
 
@@ -260,7 +260,7 @@ def get_html_content_from_trendyol(product_link):
     result['image'] = soup.find(
         "div", attrs={"class": "gallery-modal-content"}).find("img").get("src")
 
-    rating = "0"
+    rating = "0" 
     scripts = soup.find_all('script', type='application/javascript')
     for script in scripts:
         if 'ratingScore' in script.text:
@@ -274,10 +274,9 @@ def get_html_content_from_trendyol(product_link):
 
     review_count = soup.find("a", attrs={"class": "rvw-cnt-tx"})  # None
     if(review_count is None):
-        review_count = soup.select_one(".pr-in-rnr-nr span").get_text()
-        print(review_count)
-    else:
         review_count = "0"
+    else:
+        review_count = review_count.get_text()
 
     result['rating'] = rating
     result['review-count'] = review_count
