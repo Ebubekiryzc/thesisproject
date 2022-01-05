@@ -239,12 +239,12 @@ def get_html_content_from_trendyol(product_link):
     result['description'] = soup.find(
         "h1", attrs={"class": "pr-new-br"}).get_text()
 
-    original_price = soup.find("span",
-                               attrs={"class": "prc-org"})  # None
+    original_price = soup.find("div", attrs={"class": "product-price-container"})  # None
     if(original_price is not None):
-        result['original-price'] = original_price.get_text()
+        result['original-price'] = original_price.find("span",
+                               attrs={"class": "prc-org"}).get_text()
 
-    result['discounted-price'] = soup.find("span",
+    result['discounted-price'] = soup.find("div", attrs={"class": "product-price-container"}).find("span",
                                            attrs={"class": "prc-slg"}).get_text()
 
     # Eğer orijinal fiyat yoksa, sitede indirimli fiyat alanına orijinal fiyat kaydı yapılmış dolayısıyla bu işlem gerçekleşmekte.
@@ -252,7 +252,7 @@ def get_html_content_from_trendyol(product_link):
     if(original_price is None):
         result['original-price'] = result['discounted-price']
 
-    extra_discount = soup.find(
+    extra_discount = soup.find("div", attrs={"class": "product-price-container"}).find(
         "span", attrs={"class": "prc-dsc"})  # None
     if(extra_discount):
         result['discounted-price'] = extra_discount.get_text()
@@ -269,7 +269,7 @@ def get_html_content_from_trendyol(product_link):
             data = json.loads(data)
             rating = data["product"]["ratingScore"]["averageRating"]
 
-    if(rating is None):
+    if(rating is  None):
         rating = "0"
 
     review_count = soup.find("a", attrs={"class": "rvw-cnt-tx"})  # None
@@ -351,6 +351,7 @@ def compare_price_with_old_price(company, products, last_discounted_prices, disc
             product.id = urlsafe_base64_encode(force_bytes(product.id))
 
             result = company(product.product_link)
+            update_review_count(product.id,result['review-count'])
 
             scraped_original_price = float(
                 result['original-price'].replace(',', '.').split(' ')[0][:-3].replace('.', ''))
@@ -376,6 +377,12 @@ def update_scraped_price(idb64, original_price, discounted_price):
     product = get_object_or_404(Product, id=idb64)
     product.product_original_price = original_price
     product.product_discounted_price = discounted_price
+    product.save()
+
+def update_review_count(idb64,review_count):
+    idb64 = force_text(urlsafe_base64_decode(idb64))
+    product = get_object_or_404(Product, id=idb64)
+    product.product_review_count = review_count
     product.save()
 
 
