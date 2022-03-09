@@ -3,7 +3,6 @@ asgiref==3.4.1
 async-generator==1.10
 attrs==21.4.0
 autopep8==1.6.0
-backports.zoneinfo==0.2.1
 beautifulsoup4==4.10.0
 black==21.10b0
 certifi==2021.10.8
