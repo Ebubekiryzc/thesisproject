@@ -9,9 +9,6 @@ class Review(TrackingModel):
     body = models.TextField()
     updated_by = None
 
-    class Meta:
-        abstract = True
-
 
 class Product(TrackingModel):
     product_link = models.CharField(
@@ -28,7 +25,7 @@ class Product(TrackingModel):
         max_length=5, verbose_name="Ürünün Değerlendirme Ortalaması")
     product_review_count = models.CharField(
         max_length=30, verbose_name="Ürünün Değerlendirme Sayısı")
-    product_reviews = djongomodels.ArrayField(
+    product_reviews = djongomodels.ArrayReferenceField(
         verbose_name='Yorumlar', model_container=Review, blank=True, null=True)
     _id = djongomodels.ObjectIdField()
 
