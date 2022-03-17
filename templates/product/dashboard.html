@@ -10,14 +10,14 @@
   class="btn btn-primary text-light"
   >Takip Edilecek Ürün Linki Ekle</a
 >
-{% if itemExist == True %}
-<a href="{% url 'apps.product:compare_price_with_old_price_sync' %}" class="btn btn-success text-light ms-auto">
+{%if content.exists %}
+<a href="{% url 'apps.product:check_all_product_prices' %}" class="btn btn-success text-light ms-auto">
   Tümünü Güncelle
 </a>
 {% endif %}
 </div>
 <hr />
-{% if itemExist == True %}
+{% if content.exists %}
 <table class="table">
   <thead>
     <tr>
@@ -29,24 +29,24 @@
       <th scope="col">Güncellenme Tarihi</th>
       <th scope="col" class="d-none">Mail Gönder</th>
       <th scope="col">Şimdi Sorgula</th>
-      <th scope="col">Güncelle</th>
+      {% comment %} <th scope="col">Güncelle</th> {% endcomment %}
       <th scope="col">Sil</th>
     </tr>
   </thead>
   <tbody>
-    {% for product, favicon in content %}
+    {% for product in content %}
     <tr>
       <td>
         <img width="50" height="50" src="{{product.product_picture_source}}" alt="Bulunamadı"></img>
       </td>
       {% if product.product_description != "" %}
       <td>
-        <img width="16" src="{{favicon}}" alt="Bulunamadı"></img>
+        {% comment %} <img width="16" src="{{favicon}}" alt="Bulunamadı"></img> {% endcomment %}
         <a href="{{product.product_link}}" target="_blank">{{product.product_description}}</a>
       </td>
       {% else %}
       <td>
-        <img width="16" src="{{favicon}}" alt="Bulunamadı"></img>
+        {% comment %} <img width="16" src="{{favicon}}" alt="Bulunamadı"></img> {% endcomment %}
         <a href="{{product.product_link}}" target="_blank">{{product.product_link|urlizetrunc:40}}</a
         >
       </td>
@@ -56,7 +56,7 @@
       <td><span class="product-price">Ürün fiyatı kazınamamıştır.</span></td>
       {% endif %}
       <td>
-        {% if product.product_review_count != '0' %}
+        {% if product.product_review_count != 'Ürünün değerlendirmesi bulunmuyor.' %}
         <div class="stars-outer">
           <div class="stars-inner" style="width: {{product.product_mean_rating|getRatingPercentage}}"></div>
         </div>  
@@ -73,35 +73,35 @@
       </td>
       <td class="d-none">
         <a
-          href="{% url 'apps.product:send_product_link_to_user' idb64=product.id %}"
+          href="{% url 'apps.product:send_product_link_to_user' idb64=product|private:"_id" %}"
           class="btn btn-primary text-light"
           >Gönder</a
         >
       </td>
       <td>
-        <a href="{% url 'apps.product:compare_price_with_old_price_sync' idb64=product.id %}" class="btn btn-primary text-light">
+        <a href="{% url 'apps.product:check_product_price' pk=product|private:"_id" %}" class="btn btn-primary text-light">
           Sorgula
         </a>
       </td>
-      <td>
-        <a
+      {% comment %} <td> {% endcomment %}
+        {% comment %} <a
           class="btn btn-warning text-light"
           href="{% url 'apps.product:update_product' idb64=product.id %}"
           >Güncelle</a
-        >
-      </td>
+        > {% endcomment %}
+      {% comment %} </td> {% endcomment %}
       <td>
         <button
           type="button"
           class="btn btn-danger text-light"
           data-bs-toggle="modal"
-          data-bs-target="#modal-{{product.id}}"
+          data-bs-target="#modal-{{product|private:"_id"}}"
         >
           Sil
         </button>
         <div
           class="modal fade"
-          id="modal-{{product.id}}"
+          id="modal-{{product|private:"_id"}}"
           data-bs-backdrop="static"
           data-bs-keyboard="false"
           tabindex="-1"
@@ -126,7 +126,7 @@
                 <a
                   type="button"
                   class="btn btn-danger"
-                  href="{% url 'apps.product:delete_product' idb64=product.id %}"
+                  href="{% url 'apps.product:delete_product' pk=product|private:"_id" %}"
                   >Sil</a
                 >
                 <button

@@ -40,13 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'apps.account.apps.AccountConfig',
+    'apps.product.apps.ProductConfig',
     'corsheaders',
     'fontawesomefree',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
-    'apps.account',
-    'apps.product',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -90,9 +90,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'CLIENT': {
-            'host': 'mongodb+srv://admin:admin123@cluster0.nqfol.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+            'host': 'mongodb://127.0.0.1:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false',
             'name': 'thesis',
-            'authMechanism': 'SCRAM-SHA-1'
+            # 'authMechanism': 'SCRAM-SHA-1'
         }
     }
 }
@@ -152,9 +152,9 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 # EMAIL CONFIG
 
-EMAIL_FROM_USER = 'firsat.cantam@gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'firsat.cantam@gmail.com'
-EMAIL_HOST_PASSWORD = 'Proje123.'
-EMAIL_USE_TLS = True
 EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'firsat.cantam@gmail.com'
+EMAIL_HOST_PASSWORD = 'kepvbmajsfawxtgg'

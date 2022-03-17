@@ -7,9 +7,10 @@ app_name = 'apps.product'
 urlpatterns = [
     path('dashboard/', views.dashboard ,name='dashboard'),
     path('add/', views.add_product, name='add_product'),
-    path('update/<str:idb64>', views.update_product, name='update_product'),
-    path('delete/<str:idb64>', views.delete_product, name='delete_product'),
+    # path('update/<str:idb64>', views.update_product, name='update_product'),
+    path('delete/<str:pk>/', views.delete_product, name='delete_product'),
+    path('check_product_price/<str:pk>', views.compare_price_for_product, name='check_product_price'),
+    path('chec_all_product_prices/', views.compare_price_for_all_products, name='check_all_product_prices'),
     path('send_mail/<str:idb64>', views.send_product_link_to_user, name='send_product_link_to_user'),
-    path('comparison/', views.compare_price_with_old_price_sync, name='compare_price_with_old_price_sync'),
-    path('comparison/<str:idb64>', views.compare_price_with_old_price_sync, name='compare_price_with_old_price_sync'),
+    path('scrape_reviews/<str:pk>', views.scrape_reviews, name='scrape_reviews')
     ]

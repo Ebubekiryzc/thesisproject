@@ -10,3 +10,8 @@ def getRatingPercentage(product_mean_rating):
     rating = float(rating)
     ratingPercentage = str(rating*20)+"%"
     return ratingPercentage
+
+    
+@register.filter(name='private')
+def private(obj, attribute):
+    return getattr(obj, attribute)

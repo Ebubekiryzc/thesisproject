@@ -2,6 +2,8 @@ from .forms import LoginForm, RegisterForm
 from .models import User
 from .utils import generate_token
 
+from bson import ObjectId
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -91,12 +93,12 @@ def send_activation_email(request, user):
     context = {
         'user': user,
         'domain': current_site,
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'uid': urlsafe_base64_encode(force_bytes(user._id)),
         'token': generate_token.make_token(user)
     }
     email_subject = 'Hesabınızı Aktifleştirin'
     email_body = render_to_string('account/activate.html', context)
-    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
+    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_HOST_PASSWORD,
                          to=[user.email])
     email.send()
 
@@ -104,7 +106,8 @@ def send_activation_email(request, user):
 def activate_user(request, uidb64, token):
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
+        pk = ObjectId(uid)
+        user = User.objects.get(_id=pk)
 
     except Exception as e:
         user = None

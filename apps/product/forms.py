@@ -9,6 +9,7 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['product_link', ]
+
     def clean(self):
         product_link = self.cleaned_data.get('product_link')
 
@@ -16,11 +17,10 @@ class ProductForm(forms.ModelForm):
         try:
             validator(product_link)
         except ValidationError as e:
-            raise exceptions.ValidationError('Böyle bir link bulunmamaktadır.')
-        
+            raise exceptions.ValidationError(e.args[0])
+
         values = {
-            "product_link" : product_link
+            "product_link": product_link
         }
 
         return values
-
