@@ -11,7 +11,6 @@ class User(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     products_added_to_wishlist = djongomodels.ArrayReferenceField(
         verbose_name="İstek Listesine Eklenmiş Ürünler", to=Product, on_delete=djongomodels.DO_NOTHING, null=True, blank=True)
-    _id = djongomodels.ObjectIdField()
 
 
 def __str__(self):

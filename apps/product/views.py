@@ -1,5 +1,3 @@
-from bson import ObjectId
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -88,7 +86,6 @@ def add_product(request):
 def delete_product(request, pk):
 
     current_user = request.user
-    pk = ObjectId(pk)
     product = get_object_or_404(Product, _id=pk)
     current_user.products_added_to_wishlist.remove(product)
 
@@ -99,7 +96,6 @@ def delete_product(request, pk):
 @login_required(login_url=login_required)
 def send_product_link_to_user(request, pk):
 
-    pk = ObjectId(pk)
     product = get_object_or_404(Product, pk)
 
     context = {
@@ -152,7 +148,6 @@ def send_discount_notification(old_price, current_product):
 
 
 def check_if_discount_message_should_send(pk):
-    pk = ObjectId(pk)
     new_discount, old_discounted_price, product = check_if_product_has_new_discount(
         pk)
     if new_discount:
@@ -181,7 +176,6 @@ def compare_price_for_product(request, pk):
 
 @login_required(login_url=login_url)
 def scrape_reviews(request,pk):
-    pk = ObjectId(pk)
     product_link = Product.objects.get(_id = pk).product_link
     scraper_instance = SScraper()
 

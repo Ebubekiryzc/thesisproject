@@ -82,6 +82,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# CELERY hangi message broker'a görevleri iletecek
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_MAX_TASKS_PER_CHILD = 8
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -95,6 +98,10 @@ DATABASES = {
             # 'authMechanism': 'SCRAM-SHA-1'
         }
     }
+}
+
+REST_FRAMEWORK = {
+    'NON_FIELD_ERRORS_KEY': 'error'
 }
 
 

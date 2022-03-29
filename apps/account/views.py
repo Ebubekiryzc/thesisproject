@@ -2,8 +2,6 @@ from .forms import LoginForm, RegisterForm
 from .models import User
 from .utils import generate_token
 
-from bson import ObjectId
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -105,8 +103,7 @@ def send_activation_email(request, user):
 
 def activate_user(request, uidb64, token):
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
-        pk = ObjectId(uid)
+        pk = force_text(urlsafe_base64_decode(uidb64))
         user = User.objects.get(_id=pk)
 
     except Exception as e:
