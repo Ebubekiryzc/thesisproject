@@ -86,7 +86,7 @@ def add_product(request):
 def delete_product(request, pk):
 
     current_user = request.user
-    product = get_object_or_404(Product, _id=pk)
+    product = get_object_or_404(Product, id=pk)
     current_user.products_added_to_wishlist.remove(product)
 
     messages.success(request, 'Ürün başarıyla silindi.')
@@ -113,7 +113,7 @@ def send_product_link_to_user(request, pk):
 
 
 def check_if_product_has_new_discount(pk):
-    product = get_object_or_404(Product, _id=pk)
+    product = get_object_or_404(Product, id=pk)
 
     old_discounted_price = convert_comma_price_to_float(
         product.product_discounted_price)
@@ -155,7 +155,7 @@ def check_if_discount_message_should_send(pk):
 
 
 def check_all_product_prices(products=Product.objects):
-    product_ids = products.values_list("_id", flat=True)
+    product_ids = products.values_list("id", flat=True)
     for product_id in product_ids:
         check_if_discount_message_should_send(product_id)
 
@@ -174,16 +174,15 @@ def compare_price_for_product(request, pk):
     messages.success(request, 'Ürün sorgulandı.')
     return redirect('apps.product:dashboard')
 
+
 @login_required(login_url=login_url)
-def scrape_reviews(request,pk):
-    product_link = Product.objects.get(_id = pk).product_link
+def scrape_reviews(request, pk):
+    product_link = Product.objects.get(id=pk).product_link
     scraper_instance = SScraper()
 
     domain = change_url_to_company_name(product_link)
     reviews = getattr(
-        SScraper, f'get_reviews_from_{domain}')(scraper_instance,url=product_link)
-
-    
+        SScraper, f'get_reviews_from_{domain}')(scraper_instance, url=product_link)
 
     messages.success(request, 'Yorumlar başarıyla kazındı.')
     return redirect("apps.product:dashboard")

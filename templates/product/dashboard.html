@@ -73,13 +73,13 @@
       </td>
       <td class="d-none">
         <a
-          href="{% url 'apps.product:send_product_link_to_user' idb64=product|private:"_id" %}"
+          href="{% url 'apps.product:send_product_link_to_user' idb64=product.id %}"
           class="btn btn-primary text-light"
           >Gönder</a
         >
       </td>
       <td>
-        <a href="{% url 'apps.product:check_product_price' pk=product|private:"_id" %}" class="btn btn-primary text-light">
+        <a href="{% url 'apps.product:check_product_price' pk=product.id %}" class="btn btn-primary text-light">
           Sorgula
         </a>
       </td>
@@ -95,13 +95,13 @@
           type="button"
           class="btn btn-danger text-light"
           data-bs-toggle="modal"
-          data-bs-target="#modal-{{product|private:"_id"}}"
+          data-bs-target="#modal-{{product.id}}"
         >
           Sil
         </button>
         <div
           class="modal fade"
-          id="modal-{{product|private:"_id"}}"
+          id="modal-{{product.id}}"
           data-bs-backdrop="static"
           data-bs-keyboard="false"
           tabindex="-1"
@@ -126,7 +126,7 @@
                 <a
                   type="button"
                   class="btn btn-danger"
-                  href="{% url 'apps.product:delete_product' pk=product|private:"_id" %}"
+                  href="{% url 'apps.product:delete_product' pk=product.id %}"
                   >Sil</a
                 >
                 <button
