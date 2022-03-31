@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  django:
+    build: .
+    container_name: django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - mongodb
+      - redis
+      - selenium
+  selenium:
+    image: selenium/standalone-chrome
+    ports:
+      - "4444:4444"
+    restart: always
+  celery-beat:
+    build: .
+    command: celery -A config beat -l INFO
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - django
+      - redis
+  celery-worker:
+    build: .
+    command: celery -A config worker -l INFO
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - django
+      - redis
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - thesis-project-data:/data/db
+  redis:
+    image: "redis:alpine"
+
+volumes:
+  thesis-project-data:
+

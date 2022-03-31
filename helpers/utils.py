@@ -9,6 +9,7 @@ import random
 import re
 import requests
 from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -67,12 +68,14 @@ headers_list_hepsiburada = [{
 class SScraper:
 
     def __init__(self):
-        self.driver_path = "C:\Program Files (x86)\chromedriver.exe"
+        time.sleep(2)
+        self.driver_path = "http://selenium:4444/wd/hub"
         self.delay = 2
 
     def get_reviews_from_hepsiburada(self, url):
         url = url.split("?")[0]
-        browser = webdriver.Chrome(self.driver_path)
+        browser = webdriver.Remote(
+            self.driver_path, desired_capabilities=DesiredCapabilities.CHROME)
         browser.set_window_size(340, 695)
         browser.get(url+"-yorumlari")
         reviews = list()
@@ -91,8 +94,10 @@ class SScraper:
         return reviews
 
     def get_reviews_from_trendyol(self, url):
+        reviews = list()
         try:
-            browser = webdriver.Chrome(self.driver_path)
+            browser = webdriver.Remote(
+                self.driver_path, desired_capabilities=DesiredCapabilities.CHROME)
             browser.get(url)
             browser.find_element(By.CSS_SELECTOR, 'a.rvw-cnt-tx').click()
             WebDriverWait(browser, self.delay).until(
@@ -116,9 +121,10 @@ class SScraper:
             allReviewWrappers = reviewWrapperDiv.find_elements(
                 By.CSS_SELECTOR, css_selector)
 
-            return allReviewWrappers
+            reviews = [review.text for review in allReviewWrappers]
         finally:
             browser.quit()
+            return reviews
 
 
 class BSScraper:
@@ -134,7 +140,7 @@ class BSScraper:
 
     def get_link(self, url, header_list):
         self.session.headers = random.choice(header_list)
-        # time.sleep(random.random()*3)
+        # w.sleep(random.random()*3)
         html_content = self.session.get(url).text
         return html_content
 
@@ -567,6 +573,7 @@ commented_hepsiburada = "https://www.hepsiburada.com/sever-29088-dekoratif-hasir
 non_priced_hepsiburada = "https://www.hepsiburada.com/asus-rog-gl553ve-dm233t-intel-core-i7-7700hq-16gb-1tb-128gb-ssd-gtx1050ti-windows-10-home-15-6-fhd-tasinabilir-bilgisayar-pm-HB000007MFJ0"
 wierd_link_hepsiburada = "https://www.hepsiburada.com/asdhkjsad"
 
+print('selam burası selenium')
 # Testing - Hepsiburada
 
 # x = time.time()

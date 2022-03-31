@@ -83,8 +83,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # CELERY hangi message broker'a görevleri iletecek
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_MAX_TASKS_PER_CHILD = 8
+# Docker'da redis alias'ı kullanıldığından burada da redis kullanılacak
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -92,10 +93,13 @@ CELERY_MAX_TASKS_PER_CHILD = 8
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
+        'NAME': 'thesis',
         'CLIENT': {
-            'host': 'mongodb://127.0.0.1:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false',
-            'name': 'thesis',
-            # 'authMechanism': 'SCRAM-SHA-1'
+            'host': 'mongodb://mongodb:27017/',
+            # 'username': 'root',
+            # 'password': 'mongoadmin',
+            # 'authSource': 'admin',
+            # 'authMechanism': 'SCRAM-SHA-1',
         }
     }
 }

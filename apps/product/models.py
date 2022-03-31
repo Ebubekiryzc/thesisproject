@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from apps.product.managers import ProductManager
 from helpers.models import TrackingModel
@@ -30,6 +31,8 @@ class Product(TrackingModel):
 
 class Review(TrackingModel):
     body = models.TextField()
+    raw_data = models.JSONField(verbose_name='İşlenmiş metin', default=list)
+    sentiment_state = models.SmallIntegerField(verbose_name='Duygu Bilgisi')
     product = models.ForeignKey(
         to=Product, verbose_name='Ürün', blank=True, null=True, on_delete=models.CASCADE)
     updated_by = None

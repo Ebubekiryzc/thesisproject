@@ -91,7 +91,7 @@ def send_activation_email(request, user):
     context = {
         'user': user,
         'domain': current_site,
-        'uid': urlsafe_base64_encode(force_bytes(user._id)),
+        'uid': urlsafe_base64_encode(force_bytes(user.id)),
         'token': generate_token.make_token(user)
     }
     email_subject = 'Hesabınızı Aktifleştirin'
@@ -104,7 +104,7 @@ def send_activation_email(request, user):
 def activate_user(request, uidb64, token):
     try:
         pk = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(_id=pk)
+        user = User.objects.get(id=pk)
 
     except Exception as e:
         user = None

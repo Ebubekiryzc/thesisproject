@@ -5,8 +5,6 @@ from helpers.utils import BSScraper, change_url_to_company_name
 
 from .models import Product
 
-# TODO: Product' ı update et burada.
-
 
 @prevent_recursion
 def wishlist_product(sender, instance, created, **kwargs):
