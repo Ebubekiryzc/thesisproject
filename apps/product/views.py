@@ -30,7 +30,7 @@ def dashboard(request):
 
     # favicons = list()
 
-    # # TODO: Üzerinde oynama yapılacak
+    # TODO: Üzerinde oynama yapılacak
     # for product in products:
     #     favicons.append(get_favicon(product.product_link))
 
@@ -129,6 +129,7 @@ def check_if_product_has_new_discount(pk):
     return scraped_discounted_price < old_discounted_price, old_discounted_price, product
 
 
+# TODO: Burası celery task olarak yapılandırılabilir.
 def send_discount_notification(old_price, current_product):
     recipients = current_product.user_set.values_list("email", flat=True)
 
