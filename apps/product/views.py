@@ -4,8 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail.message import EmailMessage
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
+from apps.product.tasks import scrape_review_task
 
-from helpers.utils import SScraper, change_url_to_company_name, convert_comma_price_to_float
+from helpers.utils import change_url_to_company_name, convert_comma_price_to_float
 from .models import Product
 from .forms import ProductForm
 
@@ -177,12 +178,6 @@ def compare_price_for_product(request, pk):
 
 @login_required(login_url=login_url)
 def scrape_reviews(request, pk):
-    product_link = Product.objects.get(id=pk).product_link
-    scraper_instance = SScraper()
-
-    domain = change_url_to_company_name(product_link)
-    reviews = getattr(
-        SScraper, f'get_reviews_from_{domain}')(scraper_instance, url=product_link)
-
-    messages.success(request, 'Yorumlar başarıyla kazındı.')
+    scrape_review_task.delay(pk)
+    messages.success(request, 'İstek başarıyla sıraya alındı, işlem tamamlandığında mail ile bilgilendirileceksiniz.')
     return redirect("apps.product:dashboard")

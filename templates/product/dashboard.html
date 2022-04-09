@@ -29,6 +29,7 @@
       <th scope="col">Güncellenme Tarihi</th>
       <th scope="col" class="d-none">Mail Gönder</th>
       <th scope="col">Şimdi Sorgula</th>
+      <th scope="col">Analiz Et</th>
       {% comment %} <th scope="col">Güncelle</th> {% endcomment %}
       <th scope="col">Sil</th>
     </tr>
@@ -90,6 +91,11 @@
           >Güncelle</a
         > {% endcomment %}
       {% comment %} </td> {% endcomment %}
+      <td>
+        <a href="{% url 'apps.product:scrape_reviews' pk=product.id %}" class="btn btn-warning text-light">
+          Analiz Et
+        </a>
+      </td>
       <td>
         <button
           type="button"

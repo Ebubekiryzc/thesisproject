@@ -1,3 +1,4 @@
+from apps.account.tasks import send_activation_email_task
 from .forms import LoginForm, RegisterForm
 from .models import User
 from .utils import generate_token
@@ -44,7 +45,7 @@ def register(request):
         send_activation_email(request, newUser)
         messages.info(request, 'Aktivasyon maili hesabınıza yollandı.')
         return redirect('apps.account:register')
-    
+
     context = {
         'form': form
     }
@@ -75,7 +76,7 @@ def login(request):
         messages.success(request, 'Başarıyla giriş yapıldı.')
         auth.login(request, user)
         return redirect('index')
-    
+
     return render(request, 'account/login.html', context)
 
 
@@ -87,18 +88,14 @@ def logout(request):
 
 
 def send_activation_email(request, user):
-    current_site = get_current_site(request)
+    domain = f'{get_current_site(request)}'
     context = {
-        'user': user,
-        'domain': current_site,
+        'user': user.id,
+        'domain': domain,
         'uid': urlsafe_base64_encode(force_bytes(user.id)),
         'token': generate_token.make_token(user)
     }
-    email_subject = 'Hesabınızı Aktifleştirin'
-    email_body = render_to_string('account/activate.html', context)
-    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_HOST_PASSWORD,
-                         to=[user.email])
-    email.send()
+    send_activation_email_task.delay(context)
 
 
 def activate_user(request, uidb64, token):

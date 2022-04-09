@@ -68,14 +68,21 @@ headers_list_hepsiburada = [{
 class SScraper:
 
     def __init__(self):
-        time.sleep(2)
-        self.driver_path = "http://selenium:4444/wd/hub"
-        self.delay = 2
+        self.driver_path = "/usr/local/bin/chromedriver"
+        self.options = webdriver.ChromeOptions()
+        self.set_chrome_options()
+        self.delay = 3
+
+    def set_chrome_options(self):
+        self.options.add_argument(" - incognito")
+        self.options.add_argument("--headless")
+        self.options.add_argument("--disable-dev-shm-usage")
+        self.options.add_argument("--no-sandbox")
 
     def get_reviews_from_hepsiburada(self, url):
         url = url.split("?")[0]
-        browser = webdriver.Remote(
-            self.driver_path, desired_capabilities=DesiredCapabilities.CHROME)
+        browser = webdriver.Chrome(
+            executable_path=self.driver_path, chrome_options=self.options)
         browser.set_window_size(340, 695)
         browser.get(url+"-yorumlari")
         reviews = list()
@@ -96,8 +103,8 @@ class SScraper:
     def get_reviews_from_trendyol(self, url):
         reviews = list()
         try:
-            browser = webdriver.Remote(
-                self.driver_path, desired_capabilities=DesiredCapabilities.CHROME)
+            browser = webdriver.Chrome(
+                executable_path=self.driver_path, chrome_options=self.options)
             browser.get(url)
             browser.find_element(By.CSS_SELECTOR, 'a.rvw-cnt-tx').click()
             WebDriverWait(browser, self.delay).until(
@@ -573,7 +580,6 @@ commented_hepsiburada = "https://www.hepsiburada.com/sever-29088-dekoratif-hasir
 non_priced_hepsiburada = "https://www.hepsiburada.com/asus-rog-gl553ve-dm233t-intel-core-i7-7700hq-16gb-1tb-128gb-ssd-gtx1050ti-windows-10-home-15-6-fhd-tasinabilir-bilgisayar-pm-HB000007MFJ0"
 wierd_link_hepsiburada = "https://www.hepsiburada.com/asdhkjsad"
 
-print('selam burası selenium')
 # Testing - Hepsiburada
 
 # x = time.time()

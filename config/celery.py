@@ -10,10 +10,15 @@ app = Celery('config')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-app.conf.beat_schedule = {
-    'check_all_prices_10s': {
-        'task': 'apps.product.tasks.check_discounts',
-        'schedule': timedelta(seconds=10)
-    }
-}
+# Burada planlanan taskler bulunuyor.
+# app.conf.beat_schedule = {
+#     'check_all_prices': {
+#         'task': 'apps.product.tasks.check_discounts',
+#         'schedule': timedelta(seconds=10)
+#     },
+#     'scrape_all_reviews': {
+#         'task': 'apps.product.tasks.scrape_review_task',
+#         'schedule': timedelta(days=1)
+#     }
+# }
 app.autodiscover_tasks()
