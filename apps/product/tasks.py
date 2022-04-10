@@ -36,13 +36,15 @@ def insert_reviews(raw_datas, product):
 
 
 @shared_task
-def scrape_review_task(products=Product.objects.all()):
-    if products != Product.objects.all():
+def scrape_review_task(products):
+    if products is None:
+        products = Product.objects.all()
+    if len(products) == 1:
         products = Product.objects.filter(id=products)
 
     for product in products:
         reviews = scrape_reviews(product)
-        print(f'product reviews: {reviews}')
+        print(f'product reviews\n{product} -- {reviews}')
         registered_reviews = Review.objects.filter(product=product)
         print(len(registered_reviews))
         new_review_count = find_new_review_count(registered_reviews, reviews)

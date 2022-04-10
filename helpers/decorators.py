@@ -9,7 +9,7 @@ user_logout_required = user_passes_test(check_user, '/', None)
 def auth_user_should_not_access(viewfunc):
     return user_logout_required(viewfunc)
 
-
+# TODO: Deprecated
 def prevent_recursion(func):
 
     @wraps(func)
@@ -24,9 +24,11 @@ def prevent_recursion(func):
         func(sender, instance=instance, **kwargs)
 
         try:
-            instance._dirty = True
-            instance.save()
+            if instance is not None:
+                instance._dirty = True
+                instance.save()
         finally:
-            del instance._dirty
+            if instance is not None:
+                del instance._dirty
 
     return no_recursion

@@ -42,7 +42,6 @@ def dashboard(request):
     return render(request, 'product/dashboard.html', context)
 
 
-# TODO: Bir ürün bir kullanıcıya birden fazla kez tanımlanabiliyor.
 @login_required(login_url=login_url)
 def add_product(request):
     form = ProductForm(request.POST or None)
@@ -75,7 +74,12 @@ def add_product(request):
 
         # Ürün henüz yeni üretilmiş bir ürünse doğrudan ekleyelim signaller gerekli işlemleri yapacaktır.
         else:
-            product.save()
+            try:
+                product.save()
+            except:
+                messages.error(
+                    request, "Bu link kazınabilecek linkler arasında bulunmamaktadır.")
+                return redirect('apps.product:dashboard')
 
         messages.success(request, 'Ürün başarıyla eklendi.')
         return redirect('apps.product:dashboard')
@@ -180,5 +184,6 @@ def compare_price_for_product(request, pk):
 @login_required(login_url=login_url)
 def scrape_reviews(request, pk):
     scrape_review_task.delay(pk)
-    messages.success(request, 'İstek başarıyla sıraya alındı, işlem tamamlandığında mail ile bilgilendirileceksiniz.')
+    messages.success(
+        request, 'İstek başarıyla sıraya alındı, işlem tamamlandığında mail ile bilgilendirileceksiniz.')
     return redirect("apps.product:dashboard")

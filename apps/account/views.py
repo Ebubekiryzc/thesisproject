@@ -3,15 +3,12 @@ from .forms import LoginForm, RegisterForm
 from .models import User
 from .utils import generate_token
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import auth
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage
-from django.utils.encoding import force_bytes, force_text, force_str, DjangoUnicodeDecodeError
+from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 
 from helpers.decorators import auth_user_should_not_access
@@ -93,7 +90,8 @@ def send_activation_email(request, user):
         'user': user.id,
         'domain': domain,
         'uid': urlsafe_base64_encode(force_bytes(user.id)),
-        'token': generate_token.make_token(user)
+        'token': generate_token.make_token(user),
+        'from_views': True
     }
     send_activation_email_task.delay(context)
 

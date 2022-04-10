@@ -1,9 +1,13 @@
 {% autoescape off %}
 
-Hi {{user.username}}
+Merhaba {{user}}!
 
-Please use the link below to verify your account.
+Lütfen aşağıdaki bağlantıyı kullanarak hesabınızı aktifleştirin.
 
-http://{{domain}}{% url 'apps.account:activate' uidb64=uid token=token %}
+{% if context.from_views %}
+http://{{context.domain}}{% url 'apps.account:activate' uidb64=uid token=token %}
+{% else %}
+{{context.link}}
+{% endif %}
 
 {% endautoescape %}

@@ -7,7 +7,7 @@ from helpers.models import TrackingModel
 # Create your models here.
 
 class Product(TrackingModel):
-    product_link = models.CharField(
+    product_link = models.URLField(
         max_length=2048, verbose_name='Ürünün Linki')
     product_description = models.CharField(
         max_length=2048, verbose_name="Ürün Adı")
@@ -23,7 +23,7 @@ class Product(TrackingModel):
         max_length=30, verbose_name="Ürünün Değerlendirme Sayısı")
 
     objects = ProductManager()
-    will_be_scraped = True
+    will_be_scraped = False
 
     def __str__(self):
         return self.product_link
@@ -31,8 +31,10 @@ class Product(TrackingModel):
 
 class Review(TrackingModel):
     body = models.TextField()
-    processed_data = models.JSONField(verbose_name='İşlenmiş metin', default=list, null=True, blank=True)
-    sentiment_state = models.SmallIntegerField(verbose_name='Duygu Bilgisi', null=True, blank=True)
+    processed_data = models.JSONField(
+        verbose_name='İşlenmiş metin', default=list, null=True, blank=True)
+    sentiment_state = models.SmallIntegerField(
+        verbose_name='Duygu Bilgisi', null=True, blank=True)
     product = models.ForeignKey(
         to=Product, verbose_name='Ürün', blank=True, null=True, on_delete=models.CASCADE)
     updated_by = None

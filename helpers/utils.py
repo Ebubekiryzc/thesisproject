@@ -9,7 +9,6 @@ import random
 import re
 import requests
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -84,7 +83,7 @@ class SScraper:
         browser = webdriver.Chrome(
             executable_path=self.driver_path, chrome_options=self.options)
         browser.set_window_size(340, 695)
-        browser.get(url+"-yorumlari")
+        browser.get(f'{url}-yorumlari')
         reviews = list()
         while True:
             if len(results := browser.find_elements(By.XPATH, '//span[@itemprop="description"]')) > 0:
@@ -139,7 +138,7 @@ class BSScraper:
     not_on_sale = "Ürün satışta değil."
     not_discounted = "Ürün indirimde değil."
     has_no_rating = "Ürünün değerlendirmesi bulunmuyor."
-    cant_scrape_data = "Ürün bulunamadı."
+    cant_scrape_data = "Ürün kazınamadı."
 
     def __init__(self):
         self.session = requests.Session()

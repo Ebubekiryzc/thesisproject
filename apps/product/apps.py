@@ -7,6 +7,3 @@ class ProductConfig(AppConfig):
 
     def ready(self):
         import apps.product.signals
-        # print('Zamanlayıcı başladı...')
-        # from helpers import scheduler
-        # scheduler.start(20)
