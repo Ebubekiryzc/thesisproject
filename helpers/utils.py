@@ -70,7 +70,7 @@ class SScraper:
         self.driver_path = "/usr/local/bin/chromedriver"
         self.options = webdriver.ChromeOptions()
         self.set_chrome_options()
-        self.delay = 3
+        self.delay = 5
 
     def set_chrome_options(self):
         self.options.add_argument(" - incognito")
@@ -80,23 +80,28 @@ class SScraper:
 
     def get_reviews_from_hepsiburada(self, url):
         url = url.split("?")[0]
+        url = f'{url}-yorumlari'
         browser = webdriver.Chrome(
             executable_path=self.driver_path, chrome_options=self.options)
         browser.set_window_size(340, 695)
-        browser.get(f'{url}-yorumlari')
+        browser.get(url)
         reviews = list()
-        while True:
+        while True:     
+            WebDriverWait(browser, self.delay).until(EC.invisibility_of_element_located((By.XPATH,'//div[@class="hermes-Loading-module-TjXG2"]')))
+            WebDriverWait(browser, self.delay*5).until(EC.visibility_of_all_elements_located((By.XPATH, '//span[@itemprop="description"]')))
             if len(results := browser.find_elements(By.XPATH, '//span[@itemprop="description"]')) > 0:
+                print("seleniumcu: girdi")
                 for review in results:
                     reviews.append(review.text)
             else:
+                print("seleniumcu: girmedi")
                 break
+
             if len(next_p := browser.find_elements(By.XPATH, "//div[@class='hermes-MobilePageHolder-module-tOBj6' and text()='Sonraki']")) > 0:
-                next_p[0].click()
+                browser.execute_script("arguments[0].click();",next_p[0])
             else:
                 break
-            time.sleep(self.delay)
-        browser.quit()
+        print(f'seleniumcu {len(reviews)}')
         return reviews
 
     def get_reviews_from_trendyol(self, url):

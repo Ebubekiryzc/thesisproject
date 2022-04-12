@@ -4,6 +4,7 @@ from django.contrib.sites.shortcuts import get_current_site
 
 from rest_framework import generics, status, mixins
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.validators import ValidationError
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -28,7 +29,14 @@ class RegisterView(mixins.CreateModelMixin,
     queryset = User.objects.all()
     pagination_class = None
 
-    def perform_create(self, serializer):
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except:
+            messages = serializer.errors
+            return Response({"message": messages}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer.save()
         user_data = serializer.validated_data
         user = User.objects.get(email=user_data['email'])
@@ -80,6 +88,9 @@ class LoginAPIView(generics.GenericAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
+        try:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError as errors:
+            messages = serializer.errors
+            return Response({"message": messages}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)
