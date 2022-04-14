@@ -15,7 +15,8 @@ import nltk
 import pickle
 
 
-location = join(getcwd(), "helpers", "sentimentalAnalyzer", "deepLearning", "sentiment_model.h5")
+location = join(getcwd(), "helpers", "sentimentalAnalyzer",
+                "deepLearning", "sentiment_model.h5")
 
 if(not exists(str(location))):
     nltk.download('punkt')
@@ -104,7 +105,7 @@ def set_model(embedding_size, max_tokens):
 def fit_model(model, train_inputs, train_targets, epochs):
     history = model.fit(train_inputs, train_targets, epochs=epochs,
                         batch_size=64, validation_split=0.25)
-    return history
+    return model, history
 
 
 def save_model(model, location):
@@ -158,7 +159,7 @@ def predict(text_will_predict):
             train_input_tokens, max_tokens)
 
         model = set_model(50, max_tokens)
-        model = fit_model(model, np.array(
+        model, history = fit_model(model, np.array(
             train_inputs_pad_sequence), np.array(y_train), 100)
 
         save_model(model, location)
