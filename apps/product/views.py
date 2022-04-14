@@ -100,7 +100,6 @@ def delete_product(request, pk):
 
 @login_required(login_url=login_required)
 def send_product_link_to_user(request, pk):
-
     product = get_object_or_404(Product, pk)
 
     context = {
@@ -183,7 +182,7 @@ def compare_price_for_product(request, pk):
 
 @login_required(login_url=login_url)
 def scrape_reviews(request, pk):
-    scrape_review_task.delay(pk)
+    scrape_review_task.delay(pk, request.user.id)
     messages.success(
         request, 'İstek başarıyla sıraya alındı, işlem tamamlandığında mail ile bilgilendirileceksiniz.')
     return redirect("apps.product:dashboard")

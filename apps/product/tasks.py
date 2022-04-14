@@ -1,11 +1,15 @@
 from __future__ import absolute_import, unicode_literals
-from atexit import register
-from concurrent.futures.thread import _worker
 from celery import shared_task
 
+from django.conf import settings
+from django.core.mail.message import EmailMessage
+from django.template.loader import render_to_string
+
 from helpers.utils import SScraper, change_url_to_company_name
+from helpers.sentimentalAnalyzer.deepLearning.sentimentAnalyzerDeepLearning import predict, preprocess_text
 
 from .models import Product, Review
+from apps.account.models import User
 
 
 @shared_task
@@ -13,6 +17,14 @@ def check_discounts():
     from .views import check_all_product_prices
     check_all_product_prices()
     return None
+
+
+def process_text(text):
+    return preprocess_text(text)
+
+
+def predict_sentiment(text):
+    return predict(text)
 
 
 def scrape_reviews(product):
@@ -32,20 +44,61 @@ def insert_reviews(raw_datas, product):
         review.product = product
         review.body = raw_data
         review.save()
-    # Burada mail yollanabilir.
+
+
+def send_email_message(context, users, subject, template_url):
+    email_subject = f'{subject}'
+    html_email_body = render_to_string(
+        f'{template_url}', context)
+    email = EmailMessage(subject=email_subject, body=html_email_body, from_email=settings.EMAIL_HOST_PASSWORD,
+                         to=[users.email])
+    email.content_subtype = 'html'
+    email.send()
 
 
 @shared_task
-def scrape_review_task(products):
+def send_complete_mail(user_id, product_id):
+    product = Product.objects.get(id=product_id)
+    user = User.objects.get(id=user_id)
+    context = {
+        'product': product,
+    }
+    subject = f"Yorum analizi tamamlandı."
+    template_url = f"product/product-review-scrape-complete.html"
+    send_email_message(context, user, subject, template_url)
+
+
+@shared_task
+def analyze_reviews(user_id, product_id):
+    product = Product.objects.get(id=product_id)
+
+    reviews = product.review_set.all()
+    for review in reviews:
+        review.processed_data = process_text(review.body)
+        review.sentiment_state = predict(review.processed_data)
+        review.save()
+
+    send_complete_mail.delay(user_id, product_id)
+
+
+@shared_task
+def scrape_review_task(products, user):
     if products is None:
-        products = list(Product.objects.all())
+        products = Product.objects.all()
     elif len(products) == 1:
         products = list(Product.objects.filter(id=products))
 
     for product in products:
         reviews = scrape_reviews(product)
-        print(f'product reviews\n{product} -- {len(reviews)}')
         registered_reviews = Review.objects.filter(product=product)
         new_review_count = find_new_review_count(registered_reviews, reviews)
         if new_review_count > 0:
             insert_reviews(reviews[-new_review_count:], product)
+
+    if len(products) == 1:
+        products = products[0].id
+    else:
+        products = products.values_list("id", flat=True)
+
+    if user is not None:
+        analyze_reviews.delay(user, products)

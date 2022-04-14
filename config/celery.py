@@ -18,8 +18,8 @@ app.conf.beat_schedule = {
     },
     'scrape_all_reviews': {
         'task': 'apps.product.tasks.scrape_review_task',
-        'schedule': timedelta(seconds=10),
-        'args': (None,)
+        'schedule': timedelta(seconds=30),
+        'args': (None,None,)
     }
 }
 app.autodiscover_tasks()

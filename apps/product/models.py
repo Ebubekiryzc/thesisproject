@@ -31,8 +31,8 @@ class Product(TrackingModel):
 
 class Review(TrackingModel):
     body = models.TextField()
-    processed_data = models.JSONField(
-        verbose_name='İşlenmiş metin', default=list, null=True, blank=True)
+    processed_data = models.TextField(
+        verbose_name='İşlenmiş metin', null=True, blank=True)
     sentiment_state = models.SmallIntegerField(
         verbose_name='Duygu Bilgisi', null=True, blank=True)
     product = models.ForeignKey(

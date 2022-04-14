@@ -5,7 +5,7 @@ Merhaba {{user}}!
 Lütfen aşağıdaki bağlantıyı kullanarak hesabınızı aktifleştirin.
 
 {% if context.from_views %}
-http://{{context.domain}}{% url 'apps.account:activate' uidb64=uid token=token %}
+http://{{context.domain}}{% url 'apps.account:activate' uidb64=context.uid token=context.token %}
 {% else %}
 {{context.link}}
 {% endif %}
