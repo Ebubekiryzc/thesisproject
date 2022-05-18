@@ -75,8 +75,12 @@ class SScraper:
     def set_chrome_options(self):
         self.options.add_argument(" - incognito")
         self.options.add_argument("--headless")
+        self.options.add_argument("--allow-running-insecure-content")
+        self.options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 OPR/83.0.4254.70")
         self.options.add_argument("--disable-dev-shm-usage")
         self.options.add_argument("--no-sandbox")
+        self.options.add_argument('--ignore-ssl-errors=yes')
+        self.options.add_argument('--ignore-certificate-errors')
 
     def get_reviews_from_hepsiburada(self, url):
         url = url.split("?")[0]
@@ -86,9 +90,14 @@ class SScraper:
         browser.set_window_size(340, 695)
         browser.get(url)
         reviews = list()
-        while True:     
+        while True:
             WebDriverWait(browser, self.delay).until(EC.invisibility_of_element_located((By.XPATH,'//div[@class="hermes-Loading-module-TjXG2"]')))
-            WebDriverWait(browser, self.delay*5).until(EC.visibility_of_all_elements_located((By.XPATH, '//span[@itemprop="description"]')))
+
+            try:
+                WebDriverWait(browser, self.delay*3).until(EC.presence_of_all_elements_located((By.XPATH, '//span[@itemprop="description"]')))
+            except:
+                browser.save_screenshot('deneme.png')
+                print("DENEME: ",browser.get_window_size())
             if len(results := browser.find_elements(By.XPATH, '//span[@itemprop="description"]')) > 0:
                 print("seleniumcu: girdi")
                 for review in results:

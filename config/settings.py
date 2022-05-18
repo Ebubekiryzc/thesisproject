@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
+    'fontawesomefree',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True

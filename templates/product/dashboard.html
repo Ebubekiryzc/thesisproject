@@ -1,4 +1,16 @@
-{% extends 'layout.html' %} {% block body %}
+{% extends 'layout.html' %} 
+
+{% block styles %}
+<style>
+</style>
+{% endblock styles %}
+
+{% block scripts %}
+<script>
+</script>
+{% endblock scripts %}
+
+{% block body %}
 {% load custom_tags %}
 <h3>Kontrol Paneli</h3>
 <hr />
@@ -29,6 +41,7 @@
       <th scope="col">Güncellenme Tarihi</th>
       <th scope="col" class="d-none">Mail Gönder</th>
       <th scope="col">Şimdi Sorgula</th>
+      {% comment %} <th scope="col">Grafik</th> {% endcomment %}
       <th scope="col">Analiz Et</th>
       {% comment %} <th scope="col">Güncelle</th> {% endcomment %}
       <th scope="col">Sil</th>
@@ -40,31 +53,30 @@
       <td>
         <img width="50" height="50" src="{{product.product_picture_source}}" alt="Bulunamadı"></img>
       </td>
-      {% if product.product_description != "" %}
+        {% if product.product_description != "" %}
       <td>
-        {% comment %} <img width="16" src="{{favicon}}" alt="Bulunamadı"></img> {% endcomment %}
-        <a href="{{product.product_link}}" target="_blank">{{product.product_description}}</a>
+        <a href="{{product.product_link}}" target="_blank">{{product.product_description|truncatechars:"20"}}</a>
       </td>
-      {% else %}
+        {% else %}
       <td>
-        {% comment %} <img width="16" src="{{favicon}}" alt="Bulunamadı"></img> {% endcomment %}
         <a href="{{product.product_link}}" target="_blank">{{product.product_link|urlizetrunc:40}}</a
         >
       </td>
-      {% endif %} {% if product.product_price != 0%}
+        {% endif %}
+        {% if product.product_price != 0%}
       <td><span class="product-price">{{product.product_discounted_price}}</span></td>
-      {% else %}
+        {% else %}
       <td><span class="product-price">Ürün fiyatı kazınamamıştır.</span></td>
-      {% endif %}
+        {% endif %}
       <td>
-        {% if product.product_review_count != 'Ürünün değerlendirmesi bulunmuyor.' %}
+      {% if product.product_review_count != 'Ürünün değerlendirmesi bulunmuyor.' %}
         <div class="stars-outer">
           <div class="stars-inner" style="width: {{product.product_mean_rating|getRatingPercentage}}"></div>
         </div>  
         <span>({{product.product_review_count}})</span>
-        {% else %}
+      {% else %}
         <span>Henüz Yorum Yapılmamış.</span>
-        {% endif %}
+      {% endif %}
       </td>
       <td>
         <a class="text-muted text-decoration-none">{{product.created_at}}</a>
@@ -90,6 +102,9 @@
           href="{% url 'apps.product:update_product' idb64=product.id %}"
           >Güncelle</a
         > {% endcomment %}
+      {% comment %} </td> {% endcomment %}
+      {% comment %} <td> {% endcomment %}
+        {% comment %} <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Hooray!">Hover</a> {% endcomment %}
       {% comment %} </td> {% endcomment %}
       <td>
         <a href="{% url 'apps.product:scrape_reviews' pk=product.id %}" class="btn btn-warning text-light">
@@ -148,7 +163,7 @@
         </div>
       </td>
     </tr>
-    {% endfor %}
+  {% endfor %}
   </tbody>
 </table>
 {% else %}
