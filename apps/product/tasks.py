@@ -4,6 +4,7 @@ from celery import shared_task
 from django.conf import settings
 from django.core.mail.message import EmailMessage
 from django.template.loader import render_to_string
+from numpy import negative
 
 from helpers.utils import SScraper, change_url_to_company_name
 from helpers.sentimentalAnalyzer.deepLearning.sentimentAnalyzerDeepLearning import predict, preprocess_text
@@ -56,12 +57,34 @@ def send_email_message(context, users, subject, template_url):
     email.send()
 
 
+def extract_sentiment_count_from_reviews(reviews):
+    negatives = list()
+    positives = list()
+
+    for review in reviews:
+        if (review.sentiment_state == 0):
+            negatives.append(review)
+        else:
+            positives.append(review)
+
+    return len(negatives), len(positives)
+
+
 @shared_task
 def send_complete_mail(user_id, product_id):
     product = Product.objects.get(id=product_id)
+    reviews = product.review_set.all()
+    negative_count, positive_count = extract_sentiment_count_from_reviews(
+        reviews)
+
+    happy_percentage = positive_count / (negative_count + positive_count) * 100
+
     user = User.objects.get(id=user_id)
     context = {
         'product': product,
+        'negative_count': negative_count,
+        'positive_count': positive_count,
+        'happy_percentage': happy_percentage,
     }
     subject = f"Yorum analizi tamamlandı."
     template_url = f"product/product-review-scrape-complete.html"
@@ -71,7 +94,6 @@ def send_complete_mail(user_id, product_id):
 @shared_task
 def analyze_reviews(user_id, product_id):
     product = Product.objects.get(id=product_id)
-
     reviews = product.review_set.all()
     for review in reviews:
         review.processed_data = process_text(review.body)
@@ -91,9 +113,18 @@ def scrape_review_task(products, user):
     for product in products:
         reviews = scrape_reviews(product)
         registered_reviews = Review.objects.filter(product=product)
-        new_review_count = find_new_review_count(registered_reviews, reviews)
-        if new_review_count > 0:
-            insert_reviews(reviews[-new_review_count:], product)
+
+        new_review_list = list()
+        for review in reviews:
+            equality = False
+            for registered_review in registered_reviews:
+                if (review == registered_review.body):
+                    equality = True
+                    break
+            if (equality == False):
+                new_review_list.append(review)
+
+        insert_reviews(new_review_list, product)
 
     if len(products) == 1:
         products = products[0].id

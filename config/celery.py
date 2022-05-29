@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-from celery import Celery
+from celery import Celery, shared_task
 from datetime import timedelta
 import os
 
@@ -18,7 +18,7 @@ app.conf.beat_schedule = {
     },
     'scrape_all_reviews': {
         'task': 'apps.product.tasks.scrape_review_task',
-        'schedule': timedelta(seconds=30),
+        'schedule': timedelta(seconds=60),
         'args': (None,None,)
     }
 }
